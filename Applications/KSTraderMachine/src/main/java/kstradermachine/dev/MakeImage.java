@@ -6,8 +6,8 @@ import org.kynesys.foundation.v1.utils.vfs.v3.VFS3HeaderComposition;
 
 public class MakeImage {
     public static void main(String[] args) {
-        File2 f = new File2("Storage/defaults/");
-        File2 shared = f.parent().child("defaults_shared/");
+        File2 f = new File2("defaults/local");
+        File2 shared = f.parent().child("shared/");
         for (String s : f.childrenDirectories()) {
             VFS3 vfs = new VFS3();
             VFS3HeaderComposition formatter = new VFS3HeaderComposition()

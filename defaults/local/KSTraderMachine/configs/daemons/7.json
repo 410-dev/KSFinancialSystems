@@ -1,0 +1,12 @@
+{
+    "version": 1,
+    "slot": 7,
+    "label": "",
+    "exchangeDriverClass": "",
+    "traderMode": "",
+    "symbol": "",
+    "maxCashAllocated": 0.0,
+    "orderMode": "",
+    "autoRun": false,
+    "strategy": {}
+}

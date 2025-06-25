@@ -188,14 +188,13 @@ public class UpBitDriverV1 implements TraderDriverV1 {
     }
 
     @Override
-    public ArrayList<Order> getOpenOrders(Account account, HashMap<String, Object> params) throws Exception {
+    public ArrayList<Order> getOpenOrders(Account account, HashMap<String, Object> inputParams) throws Exception {
         String accessKey = account.getCredentials().getOrDefault(Account.CREDENTIAL_KEY_PK, "").toString();
         String secretKey = account.getCredentials().getOrDefault(Account.CREDENTIAL_KEY_SK, "").toString();
 
-
         // Translate symbol to market (Standard)
-        params.put("market", params.get("symbol"));
-        params.remove("symbol");
+        HashMap<String, Object> params = new HashMap<>(inputParams);
+        params.put("market", params.remove("symbol"));
 
         String[] states = {
                 "wait",
@@ -274,6 +273,8 @@ public class UpBitDriverV1 implements TraderDriverV1 {
 
                 orders.add(o);
             }
+
+            System.out.println(orders);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -287,14 +288,13 @@ public class UpBitDriverV1 implements TraderDriverV1 {
     //    https://docs.upbit.com/kr/reference/%EC%A2%85%EB%A3%8C-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
     //
     @Override
-    public ArrayList<Order> getClosedOrders(Account account, HashMap<String, Object> params) throws Exception {
+    public ArrayList<Order> getClosedOrders(Account account, HashMap<String, Object> inputParams) throws Exception {
         String accessKey = account.getCredentials().getOrDefault(Account.CREDENTIAL_KEY_PK, "").toString();
         String secretKey = account.getCredentials().getOrDefault(Account.CREDENTIAL_KEY_SK, "").toString();
 
-
-        // Translate symbol to market (Standard)
-        params.put("market", params.get("symbol"));
-        params.remove("symbol");
+        // Translate symbol to market (Standard 'symbol' to proprietary 'market')
+        HashMap<String, Object> params = new HashMap<>(inputParams);
+        params.put("market", params.remove("symbol"));
 
         String[] states = {
                 "done",

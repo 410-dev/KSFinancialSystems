@@ -78,7 +78,7 @@ public class StorageSetupTool {
                 .map(s -> s.substring("--root=".length()))
                 .findFirst()
                 .orElse("Storage");
-        rootPath += File.separator + "containers" + File.separator + scope;
+        rootPath += File.separator + "Containers" + File.separator + scope;
 
         // Create the storage directory if it doesn't already exist.
         File2 rootDirectory = new File2(rootPath);

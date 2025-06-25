@@ -2,12 +2,15 @@ package org.kynesys.kstraderapi.v1.objects;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.lks410.libhy2.jsoncoder.Codable;
+import me.lks410.libhy2.jsoncoder.JsonCodable;
 
 import java.util.HashMap;
 
 @Getter
 @Setter
-public class Order {
+@Codable
+public class Order implements JsonCodable {
 
     public static final String SPOT = "SPOT";
     public static final String FUTURE = "FUTURE";
@@ -22,7 +25,7 @@ public class Order {
     private String symbol;    // * e.g. "KRW-BTC"
     private boolean buySide;  // * "buy" or "sell"
     private String type;      // * e.g. "LIMIT", "MARKET"
-    private String marketType;//  e.g. "SPOT", "FUTURE", "OPTION", "PERPETUAL"
+    private String marketType;//   e.g. "SPOT", "FUTURE", "OPTION", "PERPETUAL"
     private double price;     // * Order price
     private double amount;    // * Order amount (In base currency, product of leverage and amount in quote currency)
     private double fee;       //   Fee charged

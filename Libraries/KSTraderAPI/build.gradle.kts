@@ -18,7 +18,7 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.13.0")
 
-    implementation(files("Libraries3/JsonCoder.jar"))
+    implementation(files("../../Libraries3/JsonCoder.jar"))
 
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")

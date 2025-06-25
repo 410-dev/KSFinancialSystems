@@ -35,6 +35,7 @@ public class Order implements JsonCodable {
     private boolean isExpired;
     private boolean isLiquidated;
     private boolean isClosed;
+    private int numberOfTradeCounts;
     private String status;    //   e.g. "OPEN", "CLOSED", "CANCELED", "EXPIRED", "LIQUIDATED"
     private String error;     //   Error message if any
     private String errorCode; //   Error code if any

@@ -1,5 +1,6 @@
 package org.kynesys.graphite.v1;
 
+import me.hysong.utils.Traceback;
 import org.kynesys.foundation.v1.async.SimplePromise;
 import org.kynesys.foundation.v1.enums.OSKernelDistro;
 import org.kynesys.foundation.v1.interfaces.KSApplication;
@@ -10,11 +11,20 @@ import org.kynesys.foundation.v1.utils.KSHostTool;
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
 
 public class GraphiteProgramLauncher {
 
     public static boolean sleekUIEnabled = false;
+
+    private static Class<? extends KSJournalingService> journalerClass;
+    private static String speculatedNamespace = "generic";
+    private static boolean DoNotCloseOnJournalerFactoryError = false;
+
+    public static void enforceJournalingNamespace(String namespace) {
+        speculatedNamespace = namespace;
+    }
 
     public static void setUIFont(FontUIResource f){
         Enumeration<Object> keys = UIManager.getDefaults().keys();
@@ -26,8 +36,29 @@ public class GraphiteProgramLauncher {
         }
     }
 
-    private static int launchApp(KSApplication appInstance, KSEnvironment environment, String execLocation, String[] args) {
+    public static KSJournalingService getJournalingObject() {
+        try {
+            try {
+                return journalerClass.getConstructor(String.class).newInstance(speculatedNamespace);
+            } catch (Exception e) {
+                return journalerClass.getConstructor().newInstance();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("==========================");
+            System.err.println("GRAPHITE ENVIRONMENT ERROR");
+            System.err.println("Journaling object cannot be constructed with generic constructor.");
+            if (!DoNotCloseOnJournalerFactoryError) {
+                System.exit(0);
+                return null;
+            }
+            System.err.println("Composing dummy journaler...");
+            return (status, message) -> System.out.println("[ " + status + " ] " + message);
+        }
+    }
 
+    private static int launchApp(KSApplication appInstance, KSEnvironment environment, String execLocation, String[] args, Class<? extends KSJournalingService> journalerClass) {
+        GraphiteProgramLauncher.journalerClass = journalerClass;
         if (KSGraphicalApplication.class.isAssignableFrom(appInstance.getClass())) {
             JFrame window = GraphiteWindowServer.makeWindow(appInstance.getAppDisplayName());
             KSGraphicalApplication app = (KSGraphicalApplication) appInstance;
@@ -78,8 +109,9 @@ public class GraphiteProgramLauncher {
         return result;
     }
 
-    public static void launch(Class<?> application, String[] args) {
-
+    public static void launch(Class<?> application, String[] args, Class<? extends KSJournalingService> journalerClass) {
+        GraphiteProgramLauncher.journalerClass = journalerClass;
+        speculatedNamespace = Traceback.getCallerClassNameSimple();
         try {
             // Set the look and feel to the system default
             if (sleekUIEnabled) {
@@ -205,7 +237,7 @@ public class GraphiteProgramLauncher {
                                     if (splashFrame != null) {
                                         splashFrame.dispose();
                                     }
-                                    launchApp(appInstance, environment, execLocation, args);
+                                    launchApp(appInstance, environment, execLocation, args, journalerClass);
                                 })
                                 .onError(() -> {
                                     System.out.println("Error in splash screen");
@@ -217,7 +249,7 @@ public class GraphiteProgramLauncher {
                                 .start();
                     } else {
                         // Not sure if it has splash or not. Just run it.
-                        launchApp(appInstance, environment, execLocation, args);
+                        launchApp(appInstance, environment, execLocation, args, journalerClass);
                     }
                 }).start();
                 // Handle the result if needed

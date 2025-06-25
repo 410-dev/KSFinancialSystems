@@ -22,4 +22,11 @@ public class Traceback {
         return getCallerClassName(0);
     }
 
+    public static String getCallerClassNameSimple() {
+        String className = getCallerClassName(0);
+        if (className == null) return "";
+        String[] components = className.split("\\.");
+        return components[components.length - 1];
+    }
+
 }

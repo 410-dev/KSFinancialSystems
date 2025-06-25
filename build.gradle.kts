@@ -17,7 +17,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     implementation(files("Libraries3/JsonCoder.jar"))
-
+    implementation(project(":Libraries:liblks"))
+    implementation(project(":Libraries:KSFoundation"))
 
 }
 

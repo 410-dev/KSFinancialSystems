@@ -18,6 +18,19 @@ repositories {
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+
+    implementation(project(":Libraries:KSTraderAPI"))
+    implementation(project(":Libraries:KSFoundation"))
+    implementation(project(":Libraries:Graphite"))
+    implementation(project(":Libraries:liblks"))
+
+    compileOnly("org.projectlombok:lombok:1.18.36")
+    annotationProcessor("org.projectlombok:lombok:1.18.36")
+    testCompileOnly("org.projectlombok:lombok:1.18.36")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
+
+    implementation(files("../../Libraries3/JsonCoder.jar"))
+    implementation("com.google.code.gson:gson:2.13.0")
 }
 
 tasks.test {

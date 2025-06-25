@@ -153,4 +153,8 @@ public class File2 extends File {
         mkdirs();
         return this;
     }
+
+    public ConfigurationFile configFileMode() {
+        return new ConfigurationFile(getAbsolutePath());
+    }
 }

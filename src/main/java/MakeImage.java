@@ -1,5 +1,3 @@
-package kstradermachine.dev;
-
 import me.hysong.files.File2;
 import org.kynesys.foundation.v1.utils.vfs.v3.VFS3;
 import org.kynesys.foundation.v1.utils.vfs.v3.VFS3HeaderComposition;

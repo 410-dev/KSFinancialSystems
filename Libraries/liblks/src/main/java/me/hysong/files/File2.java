@@ -125,11 +125,32 @@ public class File2 extends File {
         return sb.toString();
     }
 
+    public File2 writeIfNotExist(String content) throws IOException {
+        if (!exists()) {
+            writeString(content);
+        }
+        return this;
+    }
+
+    public File2 writeIfNotExist() throws IOException {
+        return writeIfNotExist("");
+    }
+
     public String readStringNullable() {
         try {
             return readString();
         } catch (IOException e) {
             return null;
         }
+    }
+
+    public File2 createDirectory() {
+        mkdir();
+        return this;
+    }
+
+    public File2 createDirectoryStructure() {
+        mkdirs();
+        return this;
     }
 }

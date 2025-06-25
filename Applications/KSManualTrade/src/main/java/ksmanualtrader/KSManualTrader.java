@@ -1,0 +1,307 @@
+package ksmanualtrader;
+
+
+import ksmanualtrader.objects.JournalingObject;
+import ksmanualtrader.windows.EditDriverSettings;
+import lombok.Getter;
+import me.hysong.files.File2;
+import org.kynesys.foundation.v1.interfaces.KSApplication;
+import org.kynesys.foundation.v1.interfaces.KSJournalingService;
+import org.kynesys.foundation.v1.sharedobj.KSEnvironment;
+import org.kynesys.foundation.v1.utils.LanguageKit;
+import org.kynesys.foundation.v1.utils.StorageSetupTool;
+import org.kynesys.graphite.v1.GPSplashWindow;
+import org.kynesys.graphite.v1.GraphiteProgramLauncher;
+import org.kynesys.graphite.v1.KSGraphicalApplication;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverManifestV1;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.HashMap;
+
+@Getter
+public class KSManualTrader extends KSGraphicalApplication implements KSApplication {
+
+    private final String appDisplayName = "Kyne Systems Manual Trader";
+    private final int windowWidth = 800;
+    private final int windowHeight = 600;
+
+    public static String storagePath = "Storage";
+
+
+
+    // --- Global Component Declarations ---
+
+    // Top Panel Components
+    private JPanel topPanel;
+    private JButton refreshButton;
+    private JComboBox<String> exchangeComboBox;
+
+    // Main content panel that holds all sections
+    private JPanel mainContentPanel;
+
+    // General Section Components
+    private JPanel generalPanel;
+    private JButton generalSettingsButton;
+    private JButton logsButton;
+
+    // Orders Section Components
+    private JPanel ordersPanel;
+    private JButton makeOrderButton;
+    private JButton currentOrdersButton1;
+    private JButton currentOrdersButton2; // As per the image, there are two buttons with similar text
+
+    // History Section Components
+    private JPanel historyPanel;
+    private JButton historyProfitButton;
+    private JButton historyButton;
+
+    // Bottom Panel Components
+    private JLabel versionLabel;
+    private JLabel connectionLabel;
+
+    // Static data
+    public static final String appDataPath = "/KSManualTrade/"; // Append after storage path
+    public static final String logsPath = appDataPath + "logs";
+    public static final String cfgPath = appDataPath + "configs";
+
+    /**
+     * Initializes all the Swing components.
+     */
+    private void initComponents() {
+        // Top Panel
+        refreshButton = new JButton("Refresh");
+//        String[] exchanges = {"UpBit", "Binance", "Coinbase"};
+
+        // Make combo box from drivers
+        String[] exchanges = new String[Drivers.driversInstantiated.size()];
+        int index = 0;
+        for (String driverId : Drivers.driversInstantiated.keySet()) {
+            String exchangeName = Drivers.driversInstantiated.get(driverId).getDriverExchangeName() + ": " + Drivers.driversInstantiated.get(driverId).getDriverExchange() + " (" + driverId + ")";
+            exchanges[index] = exchangeName;
+            index += 1;
+        }
+        exchangeComboBox = new JComboBox<>(exchanges);
+
+
+        // General Section
+        generalSettingsButton = new JButton("Settings");
+        logsButton = new JButton("Logs");
+
+        // Orders Section
+        makeOrderButton = new JButton("Make Order");
+        currentOrdersButton1 = new JButton("Current Orders");
+        currentOrdersButton2 = new JButton("Current Orders");
+
+        // History Section
+        historyProfitButton = new JButton("Profit");
+        historyButton = new JButton("History");
+
+        // Bottom Panel
+        versionLabel = new JLabel("Version 1.0");
+        connectionLabel = new JLabel("Not connected");
+
+        // Button actions
+        generalSettingsButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                String id = null;
+                if (exchangeComboBox.getSelectedItem() == null) {
+                    JOptionPane.showMessageDialog(null, "Unable to open setting: ID is not selected.", "ID not selected", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                id = exchangeComboBox.getSelectedItem().toString();
+                String[] comp = id.split(" \\(");
+                if (comp.length < 2) {
+                    JOptionPane.showMessageDialog(null, "Unable to retrieve driver ID from selection.", "Internal Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                id = comp[comp.length - 1];
+                id = id.substring(0, id.length() - 1); // This is key of drivers instantiated
+
+                new EditDriverSettings(Drivers.driversInstantiated.get(id)).setVisible(true);
+            }
+        });
+    }
+
+    /**
+     * Lays out all the initialized components within various panels.
+     */
+    private void layoutComponents() {
+        // --- Top Panel Construction ---
+        topPanel = new JPanel(new BorderLayout(5, 5));
+        topPanel.add(refreshButton, BorderLayout.WEST);
+        topPanel.add(exchangeComboBox, BorderLayout.CENTER);
+        add(topPanel, BorderLayout.NORTH); // Add top panel to the frame
+
+        // --- Main Content Panel Construction (for sections) ---
+        mainContentPanel = new JPanel();
+        mainContentPanel.setLayout(new BoxLayout(mainContentPanel, BoxLayout.Y_AXIS));
+
+        // --- General Panel ---
+        generalPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        generalPanel.setBorder(new TitledBorder("General"));
+        generalPanel.add(generalSettingsButton);
+        generalPanel.add(logsButton);
+        mainContentPanel.add(generalPanel);
+
+        // --- Orders Panel ---
+        ordersPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        ordersPanel.setBorder(new TitledBorder("Orders"));
+        ordersPanel.add(makeOrderButton);
+        ordersPanel.add(currentOrdersButton1);
+        ordersPanel.add(currentOrdersButton2);
+        mainContentPanel.add(ordersPanel);
+
+        // --- History Panel ---
+        historyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        historyPanel.setBorder(new TitledBorder("History"));
+        historyPanel.add(historyProfitButton);
+        historyPanel.add(historyButton);
+        mainContentPanel.add(historyPanel);
+
+        // Add the central container panel to the frame's center
+        add(mainContentPanel, BorderLayout.CENTER);
+
+        // --- Bottom Panel (Version Label) ---
+        // We wrap the label in a panel to provide some padding
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        bottomPanel.add(versionLabel);
+        add(bottomPanel, BorderLayout.SOUTH);
+    }
+
+
+    @Override
+    public int appMain(KSEnvironment environment, String execLocation, String[] args, KSJournalingService logger) {
+        return 0;
+    }
+
+    @Override
+    public GPSplashWindow getSplashWindow(String[] args) {
+        GPSplashWindow splashWindow = new GPSplashWindow(400, 300, JLabel.RIGHT);
+        splashWindow.setSplashBackend(new Thread(() -> {
+            // Setup storage path
+            storagePath = StorageSetupTool.init("KSManualTrader", args);
+
+            File2 root = new File2(storagePath).parent().parent();
+            File2 sharedlib = root.child("Library");
+
+            // Load libraries
+            try {
+                splashWindow.setCurrentStatus("Loading libraries...");
+                Drivers.loadJarsIn(sharedlib);
+                Drivers.loadJarsIn(new File2(storagePath + "/Libraries"));
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(splashWindow, "Failed to load libraries", "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+            // Load languages
+            String[] nonDefaultLanguages = new File2(storagePath + "/languages").childrenRecursive(true).toArray(new String[0]);
+            String[] defaultLanguages = new File2(storagePath + "/defaults/languages").childrenRecursive(true).toArray(new String[0]);
+            for (String file : defaultLanguages) {
+                // Filter .lang.txt files only
+                if (!file.endsWith(".lang.txt")) continue;
+
+                // Load
+                try {
+                    LanguageKit.loadLanguageFromFile(storagePath + "/defaults/languages/" + file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            for (String file : nonDefaultLanguages) {
+                // Filter .lang.txt files only
+                if (!file.endsWith(".lang.txt")) continue;
+
+                // Load
+                try {
+                    LanguageKit.loadLanguageFromFile(storagePath + "/languages/" + file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            // Load drivers
+            loadDrivers();
+
+            // TODO Load configurations
+            // ldcfg
+
+            // Prepare UI
+            // --- Frame Setup ---
+            setLayout(new BorderLayout(10, 10)); // Main layout with gaps
+
+            // --- Initialize Components ---
+            initComponents();
+
+            // --- Layout Panels ---
+            layoutComponents();
+
+            // --- Finalize Frame ---
+            setMinimumSize(getSize()); // Prevent resizing smaller than the packed size
+
+        }));
+        JLabel titleLabel = new JLabel("Kyne Systems Trader Machine");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setVerticalAlignment(SwingConstants.CENTER);
+        titleLabel.setSize(splashWindow.getWidth(), splashWindow.getHeight());
+        titleLabel.setLocation(0,0);
+        splashWindow.add(titleLabel);
+        splashWindow.setStatusSuffixSpacing("    ");
+        splashWindow.setStatusSuffix("KSTraderMachine 1.0");
+        splashWindow.setForegroundColor(Color.WHITE);
+        splashWindow.setBackgroundColor(Color.BLACK);
+        splashWindow.setImageLocation("path/to/splash/image.png"); // Set the path to your splash image
+        return splashWindow;
+    }
+
+    public void loadDrivers() {
+
+        // Load drivers
+        try {
+            Drivers.loadJarsIn(new File2(storagePath + "/Drivers"));
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Failed to load drivers", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        // Index drivers
+        try {
+            HashMap<String, Class<?>> drivers = (HashMap<String, Class<?>>) Drivers.DriverIntrospection.findImplementations(TraderDriverManifestV1.class);
+            for (String key : drivers.keySet()) {
+                Class<?> driverClass = drivers.get(key);
+                GraphiteProgramLauncher.getJournalingObject().log("INFO", "Driver: " + key + " -> " + driverClass.getName());
+                try {
+                    TraderDriverManifestV1 manifest = (TraderDriverManifestV1) driverClass.getDeclaredConstructor().newInstance();
+                    Drivers.driversInstantiated.put(key, manifest);
+                    Drivers.drivers.put(key, driverClass);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Drivers not instantiated!", "Error", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                    throw new RuntimeException("Driver instantiation failed", ex);
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Drivers are not loaded!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    public static void main(String[] args) {
+        GraphiteProgramLauncher.sleekUIEnabled = true;
+        GraphiteProgramLauncher.launch(KSManualTrader.class, args, JournalingObject.class);
+    }
+}

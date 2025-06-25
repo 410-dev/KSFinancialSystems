@@ -25,17 +25,28 @@ public interface TraderDriverV1 {
     Chart getChart(Account account, HashMap<String, Object> params) throws Exception;
 
     /**
-     * Get orders
+     * Get open orders
      * @param account Account that contains credentials
      * @param params Parameters for the orders.
      *               Keys may require:
      *               - symbol: The symbol to get orders for.
-     *               - orderId: The order ID to get orders for.
      *               - limit: The limit for the orders.
      * @return An Array of Order objects representing the orders.
      * @throws Exception if an error occurs while getting orders
      */
-    ArrayList<Order> getOrders(Account account, HashMap<String, Object> params) throws Exception;
+    ArrayList<Order> getOpenOrders(Account account, HashMap<String, Object> params) throws Exception;
+
+    /**
+     * Get closed orders
+     * @param account Account that contains credentials
+     * @param params Parameters for the orders.
+     *               Keys may require:
+     *               - symbol: The symbol to get orders for.
+     *               - limit: The limit for the orders.
+     * @return An Array of Order objects representing the orders.
+     * @throws Exception if an error occurs while getting orders
+     */
+    ArrayList<Order> getClosedOrders(Account account, HashMap<String, Object> params) throws Exception;
 
     /**
      * Get account information
@@ -84,4 +95,12 @@ public interface TraderDriverV1 {
      * @throws Exception if an error occurs while canceling orders
      */
     ArrayList<Order> cancelOrders(Account account, ArrayList<String> orderIds, HashMap<String, Object> params) throws Exception;
+
+    /**
+     * Get price snapshot
+     * @param account Account that contains credentials
+     * @param tickers Containing tickers to check
+     */
+    HashMap<String, Double> getPrice(Account account, String[] tickers) throws Exception;
 }
+

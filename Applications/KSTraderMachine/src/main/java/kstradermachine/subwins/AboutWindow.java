@@ -10,14 +10,13 @@ import org.kynesys.graphite.v1.KSGraphicalApplication;
 import javax.swing.*;
 
 @Getter
-public class AboutWindow extends KSGraphicalApplication implements KSApplication {
+public class AboutWindow extends JFrame {
     private final String appDisplayName = "About KSTraderMachine";
     private final int closeBehavior = JFrame.DISPOSE_ON_CLOSE;
     private final int windowWidth = 400;
     private final int windowHeight = 300;
 
-    @Override
-    public int appMain(KSEnvironment environment, String execLocation, String[] args, KSJournalingService logger) {
+    public AboutWindow() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         String[] linesToWrite = new String[]{
@@ -53,8 +52,6 @@ public class AboutWindow extends KSGraphicalApplication implements KSApplication
         text.setLocation(0, 0);
         text.setVisible(true);
         add(text);
-
-        return 0;
+        setVisible(true);
     }
-
 }

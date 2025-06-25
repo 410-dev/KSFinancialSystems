@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 @Getter
-public class ProfitLogs extends KSGraphicalApplication implements KSApplication {
+public class ProfitLogs extends JFrame {
     private final String appDisplayName = "Profit Logs";
     private final int closeBehavior = JFrame.DISPOSE_ON_CLOSE;
     private final int windowWidth = 800;
@@ -36,8 +36,7 @@ public class ProfitLogs extends KSGraphicalApplication implements KSApplication 
     private JLabel totalProfitLabel;
     private JButton refreshButton;
 
-    @Override
-    public int appMain(KSEnvironment environment, String execLocation, String[] args, KSJournalingService logger) {
+    public ProfitLogs() {
         // setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Old
         setLayout(new GridBagLayout()); // Use GridBagLayout for more control
         GridBagConstraints gbc = new GridBagConstraints();
@@ -115,7 +114,7 @@ public class ProfitLogs extends KSGraphicalApplication implements KSApplication 
         refreshButton.addActionListener(e -> refreshData());
         refreshData(); // Initial data load and total profit calculation
 
-        return 0;
+        setVisible(true);
     }
 
     // Method to calculate total profit and refresh table

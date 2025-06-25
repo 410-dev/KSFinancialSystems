@@ -22,7 +22,7 @@ import java.util.HashMap;
 // Potentially: import java.io.IOException; // For directory opening
 
 @Getter
-public class SettingsWindow extends KSGraphicalApplication implements KSApplication { // Changed class name slightly
+public class SettingsWindow extends JFrame { // Changed class name slightly
 
     // KSGraphicalApplication fields
     private final String appDisplayName = "Settings";
@@ -50,14 +50,11 @@ public class SettingsWindow extends KSGraphicalApplication implements KSApplicat
         for (TraderDriverManifestV1 driverManifest : drivers.values()) {
             exchangesMap.put(driverManifest.getDriverName(), driverManifest);
         }
-    }
 
-    @Override
-    public int appMain(KSEnvironment environment, String execLocation, String[] args, KSJournalingService logger) {
         initComponents();
         layoutComponents();
         addActionListeners();
-        return 0; // Indicate successful UI setup
+        setVisible(true);
     }
 
     private void initComponents() {

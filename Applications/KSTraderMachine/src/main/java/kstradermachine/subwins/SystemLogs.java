@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 @Getter
-public class SystemLogs extends KSGraphicalApplication implements KSApplication {
+public class SystemLogs extends JFrame {
     // Static log storage
     private static final ArrayList<String> logs = new ArrayList<>();
     private static final ArrayList<Integer> infos = new ArrayList<>();
@@ -50,8 +50,7 @@ public class SystemLogs extends KSGraphicalApplication implements KSApplication 
     private JPanel dumpButtonPanel;
     private JButton makeDumpFileButton;
 
-    @Override
-    public int appMain(KSEnvironment environment, String execLocation, String[] args, KSJournalingService logger) {
+    public SystemLogs() {
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
@@ -142,7 +141,8 @@ public class SystemLogs extends KSGraphicalApplication implements KSApplication 
 
         refreshLogDisplay(this.currentActiveFilter); // Initial display based on default filter
 
-        return 0;
+
+        setVisible(true);
     }
 
     // Method to refresh the log display based on filter

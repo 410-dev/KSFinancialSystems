@@ -177,6 +177,7 @@ public class KSTraderMachine extends KSGraphicalApplication implements KSApplica
 
             // Load libraries
             try {
+                System.out.println("LIB: " + storagePath + "/libraries");
                 splashWindow.setCurrentStatus("Loading libraries...");
                 Drivers.loadJarsIn(new File2(storagePath + "/libraries"));
             } catch (Exception e) {
@@ -313,7 +314,7 @@ public class KSTraderMachine extends KSGraphicalApplication implements KSApplica
                     dp.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
-                            GraphiteProgramLauncher.launch(EditDaemon.class, new String[]{"slot=" + idx});
+                            new EditDaemon(idx);
                         }
                     });
                 }
@@ -379,25 +380,25 @@ public class KSTraderMachine extends KSGraphicalApplication implements KSApplica
             aboutButton.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    GraphiteProgramLauncher.launch(AboutWindow.class, new String[]{});
+                    new AboutWindow();
                 }
             });
             basicSettingsButton.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    GraphiteProgramLauncher.launch(SettingsWindow.class, new String[]{});
+                    new SettingsWindow();
                 }
             });
             logsButton.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    GraphiteProgramLauncher.launch(SystemLogs.class, new String[]{});
+                    new SystemLogs();
                 }
             });
             tradeProfitLogButton.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    GraphiteProgramLauncher.launch(ProfitLogs.class, new String[]{});
+                    new ProfitLogs();
                 }
             });
 
@@ -458,6 +459,6 @@ public class KSTraderMachine extends KSGraphicalApplication implements KSApplica
 
     public static void main(String[] args) {
         GraphiteProgramLauncher.sleekUIEnabled = true;
-        GraphiteProgramLauncher.launch(KSTraderMachine.class, args);
+        GraphiteProgramLauncher.launch(KSTraderMachine.class, args, null);
     }
 }

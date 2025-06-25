@@ -24,7 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @Getter
-public class EditDaemon extends KSGraphicalApplication implements KSApplication {
+public class EditDaemon extends JFrame {
     private final String appDisplayName = "Edit / Create Daemon";
     private final int closeBehavior = JFrame.DISPOSE_ON_CLOSE;
     private final int windowWidth = 600;
@@ -74,27 +74,16 @@ public class EditDaemon extends KSGraphicalApplication implements KSApplication 
     private final ArrayList<String> exchangeDriverOptions = new ArrayList<>();
     private final ArrayList<String> strategyNameOptions = new ArrayList<>();
 
-    @Override
-    public int appMain(KSEnvironment environment, String execLocation, String[] args, KSJournalingService logger) {
 
-        if (args.length == 0) {
-            JOptionPane.showMessageDialog(null, appDisplayName + " failed to open - Required to have at least one argument (slot=x)", "Error", JOptionPane.ERROR_MESSAGE);
-            return 9;
-        }
+    public EditDaemon(int idx) {
 
-        String slotArg = args[0];
-        if (!slotArg.startsWith("slot=")) {
-            JOptionPane.showMessageDialog(null, appDisplayName + " failed to open - Slot is not valid", "Error", JOptionPane.ERROR_MESSAGE);
-            return 9;
-        }
-
-        slot = Integer.parseInt(slotArg.substring("slot=".length()));
+        slot = idx;
         cfgJsonPath = KSTraderMachine.storagePath + "/configs/daemons/" + slot + ".json";
         String content = new File2(cfgJsonPath).readStringNullable();
         if (content == null) {
             JOptionPane.showMessageDialog(null, appDisplayName + " failed to open - Content is not valid", "Error", JOptionPane.ERROR_MESSAGE);
             dispose();
-            return 9;
+            return;
         }
         daemonCfg = new DaemonCfg();
         daemonCfg.fromJson(JsonParser.parseString(content).getAsJsonObject());
@@ -347,8 +336,6 @@ public class EditDaemon extends KSGraphicalApplication implements KSApplication 
         populateFormFromDaemonCfg();
         populateToggles();
         setupActionListenersAndDynamicBehavior(); // Method to be created
-
-        return 0;
     }
 
     private void populateFormFromDaemonCfg() {

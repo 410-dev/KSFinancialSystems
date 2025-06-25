@@ -19,3 +19,4 @@ include("Libraries:liblks")
 findProject("Libraries:liblks")?.name = "liblks"
 include("Libraries:KSScripting")
 findProject("Libraries:KSScripting")?.name = "KSScripting"
+include("Drivers:UpBit")

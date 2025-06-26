@@ -112,6 +112,10 @@ public class File2 extends File {
         writeString(false, content, false);
     }
 
+    public void appendString(String content) throws IOException {
+        appendString(false, content);
+    }
+
 
     public String readString() throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(this));

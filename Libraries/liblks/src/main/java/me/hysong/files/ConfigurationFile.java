@@ -85,7 +85,12 @@ public class ConfigurationFile extends File2 {
     }
 
     public String get(String key, String defaultValue) {
-        return configFile.getOrDefault(key, defaultValue);
+        if (configFile.containsKey(key)) {
+            return configFile.get(key);
+        } else {
+            System.out.println("WARNING: Configuration does not contain key \"" + key + "\", defaulting to \"" + defaultValue + "\"");
+            return defaultValue;
+        }
     }
 
     public String get(String key) {

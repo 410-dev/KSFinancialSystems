@@ -15,7 +15,6 @@ import me.hysong.files.File2;
 
 import javax.swing.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static acadia.lwcardano.tools.UnpreciseFloatComparer.isAlmostEqual;
 
@@ -31,12 +30,15 @@ public class LWCardanoApplication {
     public static OrderObject resetTriggerOrder;
     private static ByBitCredentials credentials = null;
 
+    public static boolean debugMode = false;
+    public static String build = "2 6 J 3 0 A 2";
+
     public static void main(String[] args) {
 
         boolean stable = false;
         System.out.println("╔═══════════════════════════════╗");
         System.out.println("║       L W C A R D A N O       ║");
-        System.out.println("║         2 6 J 3 0 A 1         ║");
+        System.out.println("║         " + build + "         ║");
         if (!stable) {
             System.out.println("║         Expm. Release         ║");
         } else {
@@ -52,6 +54,32 @@ public class LWCardanoApplication {
         // - Grid build mode check
         boolean notGridBuildMode = Arrays.stream(args)
                 .filter(s -> s.equals("--gridgen")).findAny().orElse("").isEmpty();
+
+        // - Debug mode
+        debugMode = Arrays.asList(args).contains("--debug");
+
+        // help
+        if (Arrays.asList(args).contains("help") || Arrays.asList(args).contains("-h") ||  Arrays.asList(args).contains("--help")) {
+            System.out.println();
+            System.out.println("Required parameters:");
+            System.out.println("    --cfg=<configuration file>");
+            System.out.println();
+            System.out.println("Optional parameters:");
+            System.out.println("    --debug   : Launch in debug mode: This shows API responses to console.");
+            System.out.println("    --gridgen : Generate grid from autogrid configuration in cfg file");
+            System.out.println("    --about   : Print about this program");
+            System.out.println();
+            return;
+        }
+
+        // about
+        if (Arrays.asList(args).contains("--about")) {
+            System.out.println();
+            System.out.println("LWCardano " + build.replace(" ", "") + " " + (stable ? "Release" : "Experimental"));
+            System.out.println("Development Codename LAUPECTRA - Lightweight Automated Perpetual Cryptocurrency Trader");
+            System.out.println();
+            return;
+        }
 
 
         if (cfgPath.isEmpty()) {
@@ -94,10 +122,8 @@ public class LWCardanoApplication {
             return;
         }
 
-
-        /*
-            작동 알고리즘 메모
-        */
+        Logger.log("");
+        Logger.log("LWCARDANO PROGRAM START!!!!");
 
         /*
         초기 셋팅
@@ -108,6 +134,7 @@ public class LWCardanoApplication {
         (OK)
         */
         reset();
+        boolean firstRun = true;
 
         /*
         프로그램 주기능 무한 반복.
@@ -214,7 +241,13 @@ public class LWCardanoApplication {
             orderHistory.addAll(filledOrders);
             if (resetTriggerOrder != null) {
                 Logger.log("기존 리셋 트리거 취소 요청 전송");
-                String response = resetTriggerOrder.cancel();
+                String response = "";
+                if (!firstRun) {
+                    response = resetTriggerOrder.cancel();
+                } else {
+                    Logger.log("최초 실행 감지, 트리거 취소 요청 취하");
+                    firstRun = false;
+                }
                 if (!response.isEmpty()) {
                     // 리셋 트리거 취소 실패.
                     if (response.contains("order not exists or too late to cancel")) {
@@ -249,7 +282,7 @@ public class LWCardanoApplication {
                 resetTriggerOrder = new OrderObject(credentials, category, price, side, symbol, quantity, orderLinkId, newRstTriggerDirection);
                 boolean success = resetTriggerOrder.open();
                 if (success) {
-                    Logger.log("리셋 트리거 설정 완료: " + resetTriggerOrder.toString());
+                    Logger.log("리셋 트리거 설정 완료: " + resetTriggerOrder.getOrderLinkId() + "@" + resetTriggerOrder.getPrice() + " (d=" + resetTriggerOrder.getSide() + ", q=" + resetTriggerOrder.getQty() + ")");
                 } else {
                     Logger.log("ERROR", "리셋 트리거 주문 실패!");
                 }

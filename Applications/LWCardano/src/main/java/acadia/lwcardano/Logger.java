@@ -33,6 +33,7 @@ public class Logger {
      * @param message The log message content. Cannot be null.
      */
     public static void log(String status, String message) {
+        if (status.equals("DEBUG") && !LWCardanoApplication.debugMode) return;
         Objects.requireNonNull(status, "Status cannot be null");
         Objects.requireNonNull(message, "Message cannot be null");
 

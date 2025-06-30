@@ -28,7 +28,7 @@ public class Market {
                 .marketInterval(MarketInterval.HOURLY).build();
 
         LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) client.getMarketPriceLinesData(market);
-        Logger.log("INFO", "getCurrentPrice() got response: " + response);
+        Logger.log("DEBUG", "getCurrentPrice() got response: " + response);
         String lastTradedPrice = String.valueOf(
                 asListOfObj(
                         asListOfObj(

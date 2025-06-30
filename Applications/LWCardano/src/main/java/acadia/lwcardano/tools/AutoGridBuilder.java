@@ -1,5 +1,6 @@
 package acadia.lwcardano.tools;
 
+import acadia.lwcardano.LWCardanoApplication;
 import acadia.lwcardano.Logger;
 import me.hysong.files.ConfigurationFile;
 
@@ -40,6 +41,6 @@ public class AutoGridBuilder {
         }
 
         cfgFile.set("grid", String.join(",", grids));
-        Logger.log("INFO", "Grid generated: " + cfgFile.get("grid"));
+        Logger.log("DEBUG", "Grid generated: " + cfgFile.get("grid"));
     }
 }

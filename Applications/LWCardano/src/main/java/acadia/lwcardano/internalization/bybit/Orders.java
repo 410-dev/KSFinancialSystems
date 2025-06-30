@@ -42,7 +42,7 @@ public class Orders {
 
         Logger.log("INFO", "[" + orderSID + "] 주문 요청중...");
         LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) client.createOrder(order);
-        Logger.log("INFO", "[" + orderSID + "] 서버 응답: " + response);
+        Logger.log("DEBUG", "[" + orderSID + "] 서버 응답: " + response);
         return (int) response.get("retCode") == 0;
     }
 
@@ -128,7 +128,7 @@ public class Orders {
                     .request(batchReqs)
                     .build();
             LinkedHashMap<String, Object> resp = (LinkedHashMap<String, Object>) client.createBatchOrder(br);
-            Logger.log("INFO", "placeBatchOrder() received from API: " + resp);
+            Logger.log("DEBUG", "placeBatchOrder() got response: " + resp);
 
             // 반환값 체크
             ArrayList<LinkedHashMap<String, Object>> retExtInfoList = asListOfObj(asObj(resp.get("retExtInfo")).get("list"));
@@ -178,7 +178,7 @@ public class Orders {
 
         Logger.log("INFO", "[" + orderSID + "] 주문 요청중...");
         LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) client.cancelOrder(order);
-        Logger.log("INFO", "[" + orderSID + "] 서버 응답: " + response);
+        Logger.log("DEBUG", "[" + orderSID + "] 서버 응답: " + response);
         return (int) response.get("retCode") == 0 ? "" : response.get("retMsg").toString();
     }
 
@@ -234,7 +234,7 @@ public class Orders {
                 .build();
 
         LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) client.cancelAllOrder(request);
-        Logger.log("INFO", "Cancel all orders response: " + response);
+        Logger.log("DEBUG", "Cancel all orders response: " + response);
         return (int) response.get("retCode") == 0 || response.getOrDefault("retMsg", "NOT_OK").equals("OK");
     }
 
@@ -328,7 +328,7 @@ public class Orders {
                 .sellLeverage(String.valueOf(leverage))
                 .build();
         LinkedHashMap<String, Object> result = (LinkedHashMap<String, Object>) client.setPositionLeverage(drq);
-        Logger.log("INFO", "setRemoteLeverage() accepted API response: " + result);
+        Logger.log("DEBUG", "setRemoteLeverage() accepted API response: " + result);
         return "OK".equals(result.get("retMsg")) || 0 == Integer.parseInt(result.get("retCode").toString())
                 || "leverage not modified".equals(result.get("retMsg")) || 110043 == Integer.parseInt(result.get("retCode").toString());
 

@@ -1,14 +1,48 @@
 package acadia.lwcardano;
 
+import acadia.lwcardano.internalization.bybit.Market;
+import acadia.lwcardano.internalization.bybit.Orders;
+import acadia.lwcardano.internalization.bybit.objects.ByBitCredentials;
+import acadia.lwcardano.internalization.bybit.objects.GridLine;
+import acadia.lwcardano.internalization.bybit.objects.OrderObject;
+import acadia.lwcardano.internalization.bybit.objects.PositionObject;
+import acadia.lwcardano.tools.ActionHooks;
 import acadia.lwcardano.tools.AutoGridBuilder;
+import acadia.lwcardano.tools.ProgramGridBuilder;
+import com.bybit.api.client.domain.trade.Side;
 import me.hysong.files.ConfigurationFile;
 import me.hysong.files.File2;
 
 import javax.swing.*;
-import java.util.Arrays;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static acadia.lwcardano.tools.UnpreciseFloatComparer.isAlmostEqual;
 
 public class LWCardanoApplication {
+
+    public static LinkedHashMap<String, GridLine> grid = new LinkedHashMap<>();
+    public static double lowerLimit = Double.MAX_VALUE;
+    public static double upperLimit = Double.MIN_VALUE;
+    public static ConfigurationFile cfg;
+    public static ArrayList<OrderObject> orderHistory = new ArrayList<>();
+    public static int MAX_ORDER_HISTORY_LENGTH = 100;
+    public static int CLEAN_ORDER_HISTORY = 50;
+    public static OrderObject resetTriggerOrder;
+    private static ByBitCredentials credentials = null;
+
     public static void main(String[] args) {
+
+        boolean stable = false;
+        System.out.println("╔═══════════════════════════════╗");
+        System.out.println("║       L W C A R D A N O       ║");
+        System.out.println("║         2 6 J 3 0 A 1         ║");
+        if (!stable) {
+            System.out.println("║         Expm. Release         ║");
+        } else {
+            System.out.println("║        Stable  Release        ║");
+        }
+        System.out.println("╚═══════════════════════════════╝");
 
         // Check startup parameters
         // - Config file check
@@ -31,39 +65,305 @@ public class LWCardanoApplication {
         cfgPath = cfgPath.substring(cfgPath.indexOf("=") + 1);
         ConfigurationFile cfgFile = new File2(cfgPath).configFileMode().load();
 
+        String endpoint = cfgFile.get("url");
+        String ak = cfgFile.get("ak");
+        String sk = cfgFile.get("sk");
+        credentials = new ByBitCredentials(endpoint, ak, sk);
+
         // Grid build mode
         if (!notGridBuildMode) {
             AutoGridBuilder.make(cfgFile);
         }
 
+        boolean actionHookSuccess = ActionHooks.onStart(cfgFile);
+        if (!actionHookSuccess) {
+            JOptionPane.showMessageDialog(null, "Error: Action Hook Failed");
+            System.exit(0);
+            return;
+        }
+
+        cfg = cfgFile;
+
 
         /*
-        작동 알고리즘 메모
+        테스트 코드
+        */
+        boolean TESTMODE = false;
+        if (TESTMODE) {
+            System.out.println(Orders.enumerateOrderHistory(credentials, "FUTURE", "BTCUSDT", 200));
+            return;
+        }
 
+
+        /*
+            작동 알고리즘 메모
+        */
+
+        /*
         초기 셋팅
         1. buildGrid(currentPrice) 로 현재 적정 그리드 데이터를 계산한다.
             이 때, 리턴값은 <String, GridLine> 해시맵이다. (GridLine: 가격, OrderLinkID, Side 를 포함)
         2. 현재 걸려있는 예약을 모두 취소한다. (계정에서 불러온 후 iterative 로 전량 취소)
         3. 해시맵에 따라 전부 그리드를 예약한다
+        (OK)
+        */
+        reset();
 
-        반복 루프
-        1. 대기 조건: 그리드 하나가 돌파되어 거래가 체결 될 때 까지 대기.
-         -> 대기 종료시: 체결된 해당 그리드는 없어짐을 보장했다.
-
-        2. 기존 해시맵을 모두 스캔하며 체결된 그리드를 확인한다
-        ->  만약 트리거 인덱스가 0 이상인 그리드가 체결됐다면 (10번으로 점프)
-        ->  만약 체결된 그리드가 Upper / Lower 리미트에 해당한다면 (n 번으로 점프)
-        ->  그렇지 않다면 3번으로 점프
-
-        3. 트리거 인덱스를 1 증가시킨다
-        4. 체결된 그리드 라인에 flip() 을 트리거 한다 (데이터 기록)
-        ->  플립 트리거시 트리거 인덱스가 0 이상이 된다 (!!!중요!!!)
-        5. 주문 양을 현재 누적 체결량 + 일반 주문양 으로 전환한다
-        // Scene complete, loop repeat
-
-
-        10. 트리거 인덱스를 0으로 초기화 한다
-        11. 체결된 그리드 데이터를 기억한다
+        /*
+        프로그램 주기능 무한 반복.
          */
+        while (true) {
+
+            /*
+            대기용 반복 루프
+            1. 대기 조건: 그리드 하나가 돌파되어 거래가 체결 될 때 까지 대기.
+             -> 대기 종료시: 체결된 해당 그리드는 없어짐을 보장한다.
+            */
+            int wait = 200;
+            Logger.log("INFO", "대기 시작...");
+            ArrayList<OrderObject> filledOrders = new ArrayList<>();
+            while (filledOrders.isEmpty()) {
+                filledOrders = getOrdersFilledDelta();
+                try {Thread.sleep(wait);} catch (Exception ignored) {}
+            }
+            Logger.log("거래 체결 감지... filledOrder 리스트 길이: " + filledOrders.size());
+
+            /*
+            2. 기존 해시맵을 모두 스캔하며 체결된 그리드를 확인한다
+            ->  만약 체결된 그리드가 Upper / Lower 리미트에 해당한다면 전용 작업 실행
+            ->  그렇지 않다면 계속 진행
+            */
+            boolean isUpperLimitBroken = false;
+            boolean isLowerLimitBroken = false;
+            for (OrderObject orderObject : filledOrders) {
+                if (isAlmostEqual(orderObject.getPrice(), upperLimit, 0.0001)) {
+                    isUpperLimitBroken = true;
+                }
+                else if (isAlmostEqual(orderObject.getPrice(), lowerLimit, 0.0001)) {
+                    isLowerLimitBroken = true;
+                }
+            }
+            Logger.log("상한선 돌파: " + isUpperLimitBroken);
+            Logger.log("하한선 돌파: " + isLowerLimitBroken);
+            boolean isAnyLimitBroken = isUpperLimitBroken || isLowerLimitBroken;
+            if (isAnyLimitBroken) { // 리미트 해당 확인
+                boolean specificActionHookSuccess = true;
+                if (isUpperLimitBroken) {
+                    Logger.log("상한선 돌파 액션 후크 실행...");
+                    specificActionHookSuccess = ActionHooks.onUpperLimitBreak(cfgFile);
+                }
+                if (isLowerLimitBroken) {
+                    Logger.log("하한선 돌파 액션 후크 실행...");
+                    specificActionHookSuccess = ActionHooks.onLowerLimitBreak(cfgFile);
+                }
+                if (!specificActionHookSuccess) {
+                    JOptionPane.showMessageDialog(null, "Error: Action Hook for onLower/UpperLimit Failed");
+                    Logger.log("ERROR", "Error: Action Hook for onLower/UpperLimit Failed");
+                    System.exit(0);
+                    return;
+                }
+                Logger.log("상/하한선 돌파 액션 후크 실행...");
+                specificActionHookSuccess = ActionHooks.onLimitBreak(cfgFile);
+                if (!specificActionHookSuccess) {
+                    JOptionPane.showMessageDialog(null, "Error: Action Hook for onLower/UpperLimit Failed");
+                    Logger.log("ERROR", "Error: Action Hook for onLower/UpperLimit Failed");
+                    System.exit(0);
+                    return;
+                }
+                return; // continue; TODO 대체하기
+            } else {
+                Logger.log("상/하한선 돌파 감지 없음...");
+            }
+
+            /*
+            현재 조건: 체결된 예약은 Upper/lower 리미트가 아니다
+                     filledOrders 값이 비어있지 않다
+
+            작업: 방향 전환 인식
+            1. resetTriggerOrder 와 동일한 오더가 체결됐다면 reset() 트리거 후 반복 재개 -> 방향 전환 인식됨
+            2. orders 에 체결된 거래를 모두 기록함
+            3. resetTriggerOrder 에 취소 명령 처리
+            4. 리셋 처리
+             */
+            boolean triggeredResetOrder = false;
+            for (OrderObject orderObject : filledOrders) {
+                if (resetTriggerOrder == null) break;
+                if (orderObject.equals(resetTriggerOrder) || isAlmostEqual(orderObject.getPrice(), resetTriggerOrder.getPrice(), 0.0001)) {
+                    triggeredResetOrder = true;
+                    break;
+                }
+            }
+            if (triggeredResetOrder) {
+                Logger.log("리셋 트리거 감지... reset() 호출");
+                reset();
+                continue; // 리셋 트리거 정리 완료
+            } else {
+                Logger.log("리셋 트리거 감지 없음...");
+            }
+
+            /*
+            현재 조건: 체결된 거래는 Upper/lower limit 이 아니고
+                    filledOrder 값이 비어있지 않으며 (거래가 0.4초 (+-오차) 이내에 한번 이상 발생했고)
+                    방향 전환이 발생하지 않았으므로
+                    리셋 트리거가 발동되지 않았다
+
+            작업: 리셋 트리거 재설정
+            1. 리셋 트리거의 방향을 가져옴
+            2. orders 의 마지막에서 두번째 값을 resetTrigger 로 설정, 만약 길이가 부족하다면 리셋 트리거를 설정하지 않음. 이 때 위에서 찾은 방향을 이용하며 getCurrentPosition 으로 현재 qty 를 거래 총량으로 설정
+             */
+            orderHistory.addAll(filledOrders);
+            if (resetTriggerOrder != null) {
+                Logger.log("기존 리셋 트리거 취소 요청 전송");
+                String response = resetTriggerOrder.cancel();
+                if (!response.isEmpty()) {
+                    // 리셋 트리거 취소 실패.
+                    if (response.contains("order not exists or too late to cancel")) {
+                        Logger.log("WARNING", "레이턴시로 인해 리셋 트리거가 감지되지 않은것으로 인식되었습니다. 거래가 만료된 것으로 간주합니다.");
+                        Logger.log("WARNING", "패턴에서 벗어난 reset() 호출이 강제됩니다!");
+                        reset();
+                        continue;
+                    }
+                    Logger.log("ERROR", "리셋 트리거 취소 실패!!");
+                }
+            } else {
+                // 기존의 리셋 트리거 정보가 존재하지 않으므로 리셋 트리거를 과거의 마지막 거래로 임의 설정
+                // TODO 이거 두번째 전거 확인해야 하는거 아니냐
+                Logger.log("리셋 트리거 미확인... 과거 마지막 거래로 임의 설정...");
+                resetTriggerOrder = filledOrders.getLast();
+            }
+            int newRstTriggerDirection = resetTriggerOrder.getTriggerDirection();
+            Logger.log("유지할 기존 리셋 트리거 돌파 방향: " + (newRstTriggerDirection == OrderObject.DIRECTION_FALLS_TO ? "하방 돌파" : "상방 돌파"));
+
+            if (orderHistory.size() >= 2) { // 길이가 충분할 경우 트리거 설정
+                Logger.log("새로운 리셋 트리거 준비중...");
+                OrderObject secondLastOrder = orderHistory.get(orderHistory.size() - 2);
+                String category = cfgFile.get("market", "FUTURE");
+                String symbol = cfgFile.get("symbol", "BTCUSDT");
+                String orderLinkId = secondLastOrder.getOrderLinkId();
+                if (!orderLinkId.endsWith("-RST")) orderLinkId += "-RST";
+                double price = secondLastOrder.getPrice().doubleValue();
+                Side side = secondLastOrder.getInvertedSide();
+                HashMap<String, PositionObject> pos = Orders.getCurrentPosition(credentials, category, symbol);
+                PositionObject currentPosition = pos.get(symbol);
+                double quantity = currentPosition.getQty();
+                resetTriggerOrder = new OrderObject(credentials, category, price, side, symbol, quantity, orderLinkId, newRstTriggerDirection);
+                boolean success = resetTriggerOrder.open();
+                if (success) {
+                    Logger.log("리셋 트리거 설정 완료: " + resetTriggerOrder.toString());
+                } else {
+                    Logger.log("ERROR", "리셋 트리거 주문 실패!");
+                }
+            } else {
+                Logger.log("거래 기록 불충분, 리셋 트리거 설정 불가 (현재 누적 거래 기록 수: " + orderHistory.size() + ")");
+            }
+
+            if (orderHistory.size() >= MAX_ORDER_HISTORY_LENGTH) {
+                Logger.log("거래 기록 과포화, 오래된 거래 기록 절삭 시작.");
+                for (int i = 0; i < CLEAN_ORDER_HISTORY; i++) {
+                    orderHistory.removeFirst();
+                }
+                Logger.log("거래 기록 절삭 완료: 거래 기록 총 " + orderHistory.size() + "개 남음.");
+            }
+
+            Logger.log("주 반복 작업 완료===========================================");
+        }
+
+    }
+
+    /**
+     * 체결된 포지션을 찾은 후 반환함. 찾는 방식은 체결 기록을 바탕으로 set 처리를 통해 교집합이 "아닌것" 을 찾아 반환하는 방식임.
+     * @return 체결된 계약 목록 반환, 체결 시간으로 Epoch 이 가장 낮은 것 부터 반환함 (오름차순)
+     */
+    public static ArrayList<OrderObject> getOrdersFilledDelta() {
+        ArrayList<OrderObject> orderHistory = Orders.enumerateOrderHistory(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"), (int) (cfg.get("grid", "").split(",").length * 1.5));
+        ArrayList<OrderObject> closedOrders = new ArrayList<>();
+        ArrayList<String> gridLineLinkedIDs = new ArrayList<>();
+
+        for (GridLine g : grid.values()) {
+            gridLineLinkedIDs.add(g.getOrderLinkId());
+            gridLineLinkedIDs.add(g.getOrderLinkId() + "-RST"); // 리셋 주문도 포함
+        }
+
+        for (OrderObject o : orderHistory) {
+            if (gridLineLinkedIDs.contains(o.getOrderLinkId())) {
+                if (!o.isOpen()) {
+                    closedOrders.add(o);
+                }
+            }
+        }
+//        Logger.log("OH: " + orderHistory.size() + "개 항목, CO: " + closedOrders.size() + "개 항목, GLLID: " + gridLineLinkedIDs.size() + "개 항목");
+        // 이 시점에서 openOrders 와 closedOrders 는 현재 세션의 그리드만 해당되는 오더다.
+
+        // 거래 기록을 비교하여 LWCardanoApplication.orderHistory 에 없는 closedOrder 가 있다면 이는 새롭게 filled 된 order 이다
+        ArrayList<OrderObject> filledOrders = new ArrayList<>();
+
+        for (OrderObject o : closedOrders) {
+            if (!LWCardanoApplication.orderHistory.contains(o)) {
+                filledOrders.add(o);
+            }
+        }
+
+        // 시간차순으로 정렬
+        filledOrders.sort(Comparator.comparing(OrderObject::getCreatedTime));
+        return filledOrders;
+    }
+
+    public static void reset() {
+        // 걸린 주문 모두 취소
+        Logger.log("reset()");
+        Logger.log("오더 목록 정리...");
+        orderHistory.clear();
+        Logger.log("리셋 트리거 Nullify...");
+        resetTriggerOrder = null;
+        Logger.log("예약된 오더 전량 취소중...");
+        Orders.cancelAllOrders(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"));
+
+        // 설정에서 레버리지 가져오기 및 원격에 설정
+        int leverage = Integer.parseInt(cfg.get("leverage", "1"));
+        Logger.log("레버리지 설정중: " + leverage + "배수");
+        boolean leverageSet = Orders.setRemoteLeverage(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"), leverage);
+        if (!leverageSet) {
+            Logger.log("ERROR", "레버리지 설정 실패: " + leverage);
+            JOptionPane.showMessageDialog(null, "레버리지 설정 실패: " + leverage);
+            System.exit(9);
+            return;
+        }
+
+        // 현재가를 불러와 그리드 설정
+        Logger.log("INFO", "현재 가격 가져오는중...");
+        double currentPrice = Market.getCurrentPrice(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"));
+        Logger.log("INFO", "현재가: " + currentPrice);
+        grid.clear();
+        grid = ProgramGridBuilder.buildGrid(cfg, leverage, currentPrice);
+        Logger.log("INFO", "총 " + grid.size() + " 개의 그리드 데이터화 됨.");
+        Logger.log("INFO", "전량 예약중...");
+        ArrayList<OrderObject> failedOrders = makeOrderAll();
+        if (!failedOrders.isEmpty()) {
+            String failedOrdersString = Arrays.toString(failedOrders.toArray());
+            Logger.log("ERROR", "예약 실패: " + failedOrdersString);
+            JOptionPane.showMessageDialog(null, "오류: 예약 실패. 실패한 예약 목록: " + failedOrdersString);
+            System.exit(9);
+            return;
+        }
+        Logger.log("INFO", "예약 완료.");
+    }
+
+    /**
+     * 생성된 그리드 데이터를 바탕으로 order place 명령을 송신.
+     * @return 주문 실패한 OrderObject 리스트를 반환함
+     */
+    public static ArrayList<OrderObject> makeOrderAll() {
+        ArrayList<OrderObject> orders = new ArrayList<>();
+        for (GridLine line : grid.values()) {
+            orders.add(line.constructOrderObject(credentials, cfg));
+        }
+        LinkedHashMap<OrderObject, Boolean> result = Orders.placeBatchOrder(credentials, cfg.get("market", "FUTURE"), orders);
+        ArrayList<OrderObject> failedOrders = new ArrayList<>();
+        for (OrderObject order : result.keySet()) {
+            if (!result.get(order)) {
+                failedOrders.add(order);
+            }
+        }
+        return failedOrders;
     }
 }

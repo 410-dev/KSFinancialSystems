@@ -20,6 +20,10 @@ public class Logger {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
+    public static void log(String message) {
+        log("INFO", message);
+    }
+
     /**
      * Logs a message with a given status, automatically including timestamp and caller class name.
      *
@@ -48,6 +52,8 @@ public class Logger {
             callerClassName = stackTrace[2].getClassName(); // Get canonical class name
         }
 
+        callerClassName = "";
+
         // Format and print the log message
         String output = String.format("[%s] [%s] [%s] %s",
                 timestamp,
@@ -58,7 +64,7 @@ public class Logger {
 
         File2 logFile = new File2("logs/" + logTimestamp + ".log");
         try {
-            logFile.appendString(true, output);
+            logFile.appendString(true, output + "\n");
         } catch (Exception e) {
             e.printStackTrace();
         }

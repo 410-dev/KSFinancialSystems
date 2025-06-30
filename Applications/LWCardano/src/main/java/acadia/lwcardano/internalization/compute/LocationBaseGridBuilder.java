@@ -7,6 +7,6 @@ import java.util.HashMap;
 
 public class LocationBaseGridBuilder {
     public static HashMap<String, GridLine> buildGrid(double currentPrice) {
-
+        return new HashMap<>();
     }
 }

@@ -8,8 +8,10 @@ import acadia.lwcardano.internalization.bybit.objects.OrderObject;
 import acadia.lwcardano.internalization.bybit.objects.PositionObject;
 import acadia.lwcardano.tools.ActionHooks;
 import acadia.lwcardano.tools.AutoGridBuilder;
+import acadia.lwcardano.tools.HeadlessDialogs;
 import acadia.lwcardano.tools.ProgramGridBuilder;
 import com.bybit.api.client.domain.trade.Side;
+import lombok.extern.java.Log;
 import me.hysong.files.ConfigurationFile;
 import me.hysong.files.File2;
 
@@ -31,7 +33,8 @@ public class LWCardanoApplication {
     private static ByBitCredentials credentials = null;
 
     public static boolean debugMode = false;
-    public static String build = "2 6 J 3 0 A 2";
+    public static boolean verbose = false;
+    public static String build = "2 5 J 0 1 B 4"; // 앞 2글자: 연도, 다음 1글자: 월의 첫 글자, 다음 2글자: 날짜, 다음 1글자: 월이 겹치면 알파벳 하나 증가 (April, August 등), 다음 1글자: 리비젼 16진수 (1~F)
 
     public static void main(String[] args) {
 
@@ -57,6 +60,7 @@ public class LWCardanoApplication {
 
         // - Debug mode
         debugMode = Arrays.asList(args).contains("--debug");
+        verbose = Arrays.asList(args).contains("--verbose");
 
         // help
         if (Arrays.asList(args).contains("help") || Arrays.asList(args).contains("-h") ||  Arrays.asList(args).contains("--help")) {
@@ -66,6 +70,7 @@ public class LWCardanoApplication {
             System.out.println();
             System.out.println("Optional parameters:");
             System.out.println("    --debug   : Launch in debug mode: This shows API responses to console.");
+            System.out.println("    --verbose : Enable verbose flag. This will show all DEEP-DEBUG flagged logs, which will make console dirty.");
             System.out.println("    --gridgen : Generate grid from autogrid configuration in cfg file");
             System.out.println("    --about   : Print about this program");
             System.out.println();
@@ -84,7 +89,7 @@ public class LWCardanoApplication {
 
         if (cfgPath.isEmpty()) {
             System.err.println("Error: Configuration file not passed in as argument: Requires --cfg=<config file>");
-            JOptionPane.showMessageDialog(null, "Error: Configuration file not passed in as argument: Requires --cfg=<config file>");
+            HeadlessDialogs.showMessage("Error: Configuration file not passed in as argument: Requires --cfg=<config file>");
             System.exit(0);
             return;
         }
@@ -103,9 +108,9 @@ public class LWCardanoApplication {
             AutoGridBuilder.make(cfgFile);
         }
 
-        boolean actionHookSuccess = ActionHooks.onStart(cfgFile);
+        boolean actionHookSuccess = ActionHooks.onStart(credentials, cfgFile);
         if (!actionHookSuccess) {
-            JOptionPane.showMessageDialog(null, "Error: Action Hook Failed");
+            HeadlessDialogs.showMessage("Error: Action Hook Failed");
             System.exit(0);
             return;
         }
@@ -146,14 +151,26 @@ public class LWCardanoApplication {
             1. 대기 조건: 그리드 하나가 돌파되어 거래가 체결 될 때 까지 대기.
              -> 대기 종료시: 체결된 해당 그리드는 없어짐을 보장한다.
             */
-            int wait = 200;
+            int wait = 500;
             Logger.log("INFO", "대기 시작...");
             ArrayList<OrderObject> filledOrders = new ArrayList<>();
             while (filledOrders.isEmpty()) {
+                long start = System.currentTimeMillis();
                 filledOrders = getOrdersFilledDelta();
+                long taken = System.currentTimeMillis() - start;
+                Logger.log("DEEP-DEBUG", "Took " + taken + " ms to scan.");
+                start = System.currentTimeMillis();
                 try {Thread.sleep(wait);} catch (Exception ignored) {}
+                taken = System.currentTimeMillis() - start;
+                Logger.log("DEEP-DEBUG", "Took " + taken + " ms to sleep.");
             }
             Logger.log("거래 체결 감지... filledOrder 리스트 길이: " + filledOrders.size());
+
+            if (debugMode) {
+                for (int i = 0; i < filledOrders.size(); i++) {
+                    Logger.log("DEBUG", "Filled order [" + i + "]: " + filledOrders.get(i));
+                }
+            }
 
             /*
             2. 기존 해시맵을 모두 스캔하며 체결된 그리드를 확인한다
@@ -163,10 +180,10 @@ public class LWCardanoApplication {
             boolean isUpperLimitBroken = false;
             boolean isLowerLimitBroken = false;
             for (OrderObject orderObject : filledOrders) {
-                if (isAlmostEqual(orderObject.getPrice(), upperLimit, 0.0001)) {
+                if (orderObject.getOrderLinkId().contains("-UPLIM")) {
                     isUpperLimitBroken = true;
                 }
-                else if (isAlmostEqual(orderObject.getPrice(), lowerLimit, 0.0001)) {
+                else if (orderObject.getOrderLinkId().contains("-LOWLIM")) {
                     isLowerLimitBroken = true;
                 }
             }
@@ -177,22 +194,22 @@ public class LWCardanoApplication {
                 boolean specificActionHookSuccess = true;
                 if (isUpperLimitBroken) {
                     Logger.log("상한선 돌파 액션 후크 실행...");
-                    specificActionHookSuccess = ActionHooks.onUpperLimitBreak(cfgFile);
+                    specificActionHookSuccess = ActionHooks.onUpperLimitBreak(credentials, cfgFile);
                 }
                 if (isLowerLimitBroken) {
                     Logger.log("하한선 돌파 액션 후크 실행...");
-                    specificActionHookSuccess = ActionHooks.onLowerLimitBreak(cfgFile);
+                    specificActionHookSuccess = ActionHooks.onLowerLimitBreak(credentials, cfgFile);
                 }
                 if (!specificActionHookSuccess) {
-                    JOptionPane.showMessageDialog(null, "Error: Action Hook for onLower/UpperLimit Failed");
+                    HeadlessDialogs.showMessage("Error: Action Hook for onLower/UpperLimit Failed");
                     Logger.log("ERROR", "Error: Action Hook for onLower/UpperLimit Failed");
                     System.exit(0);
                     return;
                 }
                 Logger.log("상/하한선 돌파 액션 후크 실행...");
-                specificActionHookSuccess = ActionHooks.onLimitBreak(cfgFile);
+                specificActionHookSuccess = ActionHooks.onLimitBreak(credentials, cfgFile);
                 if (!specificActionHookSuccess) {
-                    JOptionPane.showMessageDialog(null, "Error: Action Hook for onLower/UpperLimit Failed");
+                    HeadlessDialogs.showMessage("Error: Action Hook for onLower/UpperLimit Failed");
                     Logger.log("ERROR", "Error: Action Hook for onLower/UpperLimit Failed");
                     System.exit(0);
                     return;
@@ -251,12 +268,12 @@ public class LWCardanoApplication {
                 if (!response.isEmpty()) {
                     // 리셋 트리거 취소 실패.
                     if (response.contains("order not exists or too late to cancel")) {
-                        Logger.log("WARNING", "레이턴시로 인해 리셋 트리거가 감지되지 않은것으로 인식되었습니다. 거래가 만료된 것으로 간주합니다.");
+                        Logger.log("WARNING", "레이턴시로 인해 리셋 트리거가 체결되었음에도 감지되지 않은것으로 인식되었습니다. 거래가 만료된 것으로 간주합니다.");
                         Logger.log("WARNING", "패턴에서 벗어난 reset() 호출이 강제됩니다!");
                         reset();
                         continue;
                     }
-                    Logger.log("ERROR", "리셋 트리거 취소 실패!!");
+                    Logger.log("ERROR", "리셋 트리거 취소 실패: " + response);
                 }
             } else {
                 // 기존의 리셋 트리거 정보가 존재하지 않으므로 리셋 트리거를 과거의 마지막 거래로 임의 설정
@@ -280,7 +297,7 @@ public class LWCardanoApplication {
                 PositionObject currentPosition = pos.get(symbol);
                 double quantity = currentPosition.getQty();
                 resetTriggerOrder = new OrderObject(credentials, category, price, side, symbol, quantity, orderLinkId, newRstTriggerDirection);
-                boolean success = resetTriggerOrder.open();
+                boolean success = resetTriggerOrder.placeOrder();
                 if (success) {
                     Logger.log("리셋 트리거 설정 완료: " + resetTriggerOrder.getOrderLinkId() + "@" + resetTriggerOrder.getPrice() + " (d=" + resetTriggerOrder.getSide() + ", q=" + resetTriggerOrder.getQty() + ")");
                 } else {
@@ -308,15 +325,18 @@ public class LWCardanoApplication {
      * @return 체결된 계약 목록 반환, 체결 시간으로 Epoch 이 가장 낮은 것 부터 반환함 (오름차순)
      */
     public static ArrayList<OrderObject> getOrdersFilledDelta() {
+//        Logger.log("DEEP-DEBUG", "Orders.enumerateOrderHistory()");
         ArrayList<OrderObject> orderHistory = Orders.enumerateOrderHistory(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"), (int) (cfg.get("grid", "").split(",").length * 1.5));
         ArrayList<OrderObject> closedOrders = new ArrayList<>();
         ArrayList<String> gridLineLinkedIDs = new ArrayList<>();
 
+//        Logger.log("DEEP-DEBUG", "for (GridLine g : grid.values()){}");
         for (GridLine g : grid.values()) {
             gridLineLinkedIDs.add(g.getOrderLinkId());
             gridLineLinkedIDs.add(g.getOrderLinkId() + "-RST"); // 리셋 주문도 포함
         }
 
+//        Logger.log("DEEP-DEBUG", "for (OrderObject o : orderHistory) {}");
         for (OrderObject o : orderHistory) {
             if (gridLineLinkedIDs.contains(o.getOrderLinkId())) {
                 if (!o.isOpen()) {
@@ -330,6 +350,7 @@ public class LWCardanoApplication {
         // 거래 기록을 비교하여 LWCardanoApplication.orderHistory 에 없는 closedOrder 가 있다면 이는 새롭게 filled 된 order 이다
         ArrayList<OrderObject> filledOrders = new ArrayList<>();
 
+//        Logger.log("DEEP-DEBUG", "for (OrderObject o : closedOrders) {}");
         for (OrderObject o : closedOrders) {
             if (!LWCardanoApplication.orderHistory.contains(o)) {
                 filledOrders.add(o);
@@ -337,6 +358,7 @@ public class LWCardanoApplication {
         }
 
         // 시간차순으로 정렬
+//        Logger.log("DEEP-DEBUG", "filledOrders.sort(Comparator.comparing(OrderObject::getCreatedTime));");
         filledOrders.sort(Comparator.comparing(OrderObject::getCreatedTime));
         return filledOrders;
     }
@@ -357,7 +379,7 @@ public class LWCardanoApplication {
         boolean leverageSet = Orders.setRemoteLeverage(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"), leverage);
         if (!leverageSet) {
             Logger.log("ERROR", "레버리지 설정 실패: " + leverage);
-            JOptionPane.showMessageDialog(null, "레버리지 설정 실패: " + leverage);
+            HeadlessDialogs.showMessage("레버리지 설정 실패: " + leverage);
             System.exit(9);
             return;
         }
@@ -374,7 +396,7 @@ public class LWCardanoApplication {
         if (!failedOrders.isEmpty()) {
             String failedOrdersString = Arrays.toString(failedOrders.toArray());
             Logger.log("ERROR", "예약 실패: " + failedOrdersString);
-            JOptionPane.showMessageDialog(null, "오류: 예약 실패. 실패한 예약 목록: " + failedOrdersString);
+            HeadlessDialogs.showMessage("오류: 예약 실패. 실패한 예약 목록: " + failedOrdersString);
             System.exit(9);
             return;
         }

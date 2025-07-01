@@ -47,7 +47,7 @@ tasks.withType<ShadowJar> {
     // 2. Set target directory for the fat JAR:
     archiveFileName.set(project.name + ".app.jar")
     archiveClassifier.set("")
-    destinationDirectory.set(file("../../Storage/Applications"))
+    destinationDirectory.set(file("../.."))
 
 
     // 4. Includes the main project's compiled classes:

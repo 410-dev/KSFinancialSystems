@@ -34,6 +34,7 @@ public class Logger {
      */
     public static void log(String status, String message) {
         if (status.equals("DEBUG") && !LWCardanoApplication.debugMode) return;
+        else if (status.equals("DEEP-DEBUG") && !LWCardanoApplication.verbose) return;
         Objects.requireNonNull(status, "Status cannot be null");
         Objects.requireNonNull(message, "Message cannot be null");
 

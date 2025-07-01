@@ -15,7 +15,7 @@ public class AutoGridBuilder {
         for (String key : keys) {
             if (!cfgFile.has(key) || cfgFile.isKeyNullOrEmpty(key)) {
                 System.err.println("Error: Autogrid mode requires " + Arrays.toString(keys) + " but missed " + key);
-                JOptionPane.showMessageDialog(null, "Error: Autogrid mode requires " + Arrays.toString(keys) + " but missed " + key);
+                HeadlessDialogs.showMessage("Error: Autogrid mode requires " + Arrays.toString(keys) + " but missed " + key);
                 System.exit(0);
                 return;
             }
@@ -29,7 +29,7 @@ public class AutoGridBuilder {
             autoCount = Integer.parseInt(cfgFile.get("autogrid-count"));
         } catch (Exception e) {
             System.err.println("Error: Failed to cast autogrid values to integer");
-            JOptionPane.showMessageDialog(null, "Error: Failed to cast autogrid values to integer");
+            HeadlessDialogs.showMessage("Error: Failed to cast autogrid values to integer");
             System.exit(0);
             return;
         }

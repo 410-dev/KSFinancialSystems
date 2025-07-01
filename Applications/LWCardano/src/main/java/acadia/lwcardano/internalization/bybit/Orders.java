@@ -30,15 +30,27 @@ public class Orders {
     public static boolean placeOrder(ByBitCredentials credentials, double price, Side side, String category, String symbol, double amountBTC, String orderSID) {
         BybitApiTradeRestClient client = ClientFactory.getAuthorizedTradeClient(credentials).newTradeRestClient();
 
-        TradeOrderRequest order = TradeOrderRequest.builder()
-                .category(category.equals("FUTURE") ? CategoryType.LINEAR : CategoryType.SPOT)
-                .symbol(symbol)
-                .side(side)
-                .orderType(TradeOrderType.LIMIT)
-                .qty(String.format("%.3f", amountBTC))
-                .orderLinkId(orderSID.replace("-RST-RST", "-RST"))
-                .price(String.valueOf(price))
-                .build();
+        TradeOrderRequest order;
+        if (price > 0) {
+            order = TradeOrderRequest.builder()
+                    .category(category.equals("FUTURE") ? CategoryType.LINEAR : CategoryType.SPOT)
+                    .symbol(symbol)
+                    .side(side)
+                    .orderType(TradeOrderType.LIMIT)
+                    .qty(String.format("%.3f", amountBTC))
+                    .orderLinkId(orderSID.replace("-RST-RST", "-RST"))
+                    .price(String.valueOf(price))
+                    .build();
+        } else {
+            order = TradeOrderRequest.builder()
+                    .category(category.equals("FUTURE") ? CategoryType.LINEAR : CategoryType.SPOT)
+                    .symbol(symbol)
+                    .side(side)
+                    .orderType(TradeOrderType.MARKET)
+                    .qty(String.format("%.3f", amountBTC))
+                    .orderLinkId(orderSID.replace("-RST-RST", "-RST"))
+                    .build();
+        }
 
         Logger.log("INFO", "[" + orderSID + "] 주문 요청중...");
         LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) client.createOrder(order);

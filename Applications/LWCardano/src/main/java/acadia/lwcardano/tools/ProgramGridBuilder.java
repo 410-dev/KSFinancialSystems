@@ -17,7 +17,7 @@ public class ProgramGridBuilder {
         // 설정에서 그리드 정보 가져오기
         String[] gridRaw = cfgFile.get("grid", "").split(",");
         if (gridRaw.length < 3) {
-            JOptionPane.showMessageDialog(null, "Error: Grid must have at least 3 elements");
+            HeadlessDialogs.showMessage("Error: Grid must have at least 3 elements");
             System.exit(0);
         }
 
@@ -30,7 +30,7 @@ public class ProgramGridBuilder {
                 gridValue = Double.parseDouble(gridRaw[i]);
             } catch (Exception e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error: Grid value must be a real number, but got: [" + gridRaw[i] + "]. For safety, program will terminate.");
+                HeadlessDialogs.showMessage("Error: Grid value must be a real number, but got: [" + gridRaw[i] + "]. For safety, program will terminate.");
                 System.exit(0);
                 return null;
             }
@@ -38,7 +38,13 @@ public class ProgramGridBuilder {
             // 현재가에 따라 방향 결정
             // 현재가보다 높은 위치의 그리드라면 SHORT 포지션
             // 현재가보다 낮은 위치의 그리드라면 LONG 포지션
-            GridLine gl = new GridLine(gridRaw[i], oLinkIDPrefix + "-" + i, currentPrice < gridValue ? Side.SELL : Side.BUY, Double.parseDouble(cfgFile.get("fund")) / gridValue * leverage, currentPrice < gridValue ? OrderObject.DIRECTION_RISES_TO : OrderObject.DIRECTION_FALLS_TO);
+            String linkId = oLinkIDPrefix + "-" + i;
+            if (i == 0) {
+                linkId += "-LOWLIM";
+            } else if (i == gridRaw.length - 1) {
+                linkId += "-UPLIM";
+            }
+            GridLine gl = new GridLine(gridRaw[i], linkId, currentPrice < gridValue ? Side.SELL : Side.BUY, Double.parseDouble(cfgFile.get("fund")) / gridValue * leverage, currentPrice < gridValue ? OrderObject.DIRECTION_RISES_TO : OrderObject.DIRECTION_FALLS_TO);
             grid.put(gridRaw[i], gl);
 //            Logger.log("INFO", "Grid data generated: " + gl.getQuantity() + "@" + gl.getPrice());
         }

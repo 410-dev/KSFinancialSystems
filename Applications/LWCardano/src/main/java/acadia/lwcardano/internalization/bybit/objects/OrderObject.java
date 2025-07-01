@@ -4,7 +4,6 @@ import acadia.lwcardano.internalization.bybit.Orders;
 import com.bybit.api.client.domain.trade.Side;
 import lombok.Getter;
 import lombok.Setter;
-import me.hysong.files.ConfigurationFile;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -15,65 +14,65 @@ import java.util.Map;
 @Setter
 public class OrderObject {
 
-    private final ByBitCredentials credentials;
+    private ByBitCredentials credentials;
 
-    private final String category;
+    private String category;
 
-    private final String orderId;
-    private final String orderLinkId;
-    private final String blockTradeId;
-    private final String symbol;
+    private String orderId;
+    private String orderLinkId;
+    private String blockTradeId;
+    private String symbol;
 
-    private final BigDecimal price;
-    private final BigDecimal qty;
-    private final String side;
-    private final boolean isLeverage;
-    private final int positionIdx;
+    private BigDecimal price;
+    private BigDecimal qty;
+    private String side;
+    private boolean isLeverage;
+    private int positionIdx;
 
-    private final String orderStatus;
-    private final String cancelType;
-    private final String rejectReason;
+    private String orderStatus;
+    private String cancelType;
+    private String rejectReason;
 
-    private final BigDecimal avgPrice;
-    private final BigDecimal leavesQty;
-    private final BigDecimal leavesValue;
-    private final BigDecimal cumExecQty;
-    private final BigDecimal cumExecValue;
-    private final BigDecimal cumExecFee;
+    private BigDecimal avgPrice;
+    private BigDecimal leavesQty;
+    private BigDecimal leavesValue;
+    private BigDecimal cumExecQty;
+    private BigDecimal cumExecValue;
+    private BigDecimal cumExecFee;
 
-    private final String timeInForce;
-    private final String orderType;
-    private final String stopOrderType;
+    private String timeInForce;
+    private String orderType;
+    private String stopOrderType;
 
-    private final BigDecimal triggerPrice;
-    private final BigDecimal takeProfit;
-    private final BigDecimal stopLoss;
-    private final String tpTriggerBy;
-    private final String slTriggerBy;
+    private BigDecimal triggerPrice;
+    private BigDecimal takeProfit;
+    private BigDecimal stopLoss;
+    private String tpTriggerBy;
+    private String slTriggerBy;
 
-    private final int triggerDirection;
-    private final String triggerBy;
-    private final String lastPriceOnCreated;
+    private int triggerDirection;
+    private String triggerBy;
+    private String lastPriceOnCreated;
 
-    private final boolean reduceOnly;
-    private final boolean closeOnTrigger;
+    private boolean reduceOnly;
+    private boolean closeOnTrigger;
 
-    private final String smpType;
-    private final int smpGroup;
-    private final String smpOrderId;
+    private String smpType;
+    private int smpGroup;
+    private String smpOrderId;
 
-    private final String tpslMode;
-    private final String tpLimitPrice;
-    private final String slLimitPrice;
-    private final String placeType;
+    private String tpslMode;
+    private String tpLimitPrice;
+    private String slLimitPrice;
+    private String placeType;
 
-    private final Instant createdTime;
-    private final Instant updatedTime;
+    private Instant createdTime;
+    private Instant updatedTime;
 
-    private final boolean isResponse;
+    private boolean isResponse;
 
-    public static final int DIRECTION_RISES_TO = 1;
-    public static final int DIRECTION_FALLS_TO = 2;
+    public static int DIRECTION_RISES_TO = 1;
+    public static int DIRECTION_FALLS_TO = 2;
 
     public OrderObject(ByBitCredentials c, HashMap<String, Object> o) {
         this.credentials = c;
@@ -205,7 +204,7 @@ public class OrderObject {
     }
 
 
-    public boolean open() {
+    public boolean placeOrder() {
         if (!this.canOpen()) {
             throw new RuntimeException("Unable to create order - current object is from response.");
         }
@@ -272,7 +271,8 @@ public class OrderObject {
     @Override
     public String toString() {
         return "OrderObject{" +
-                "orderId='" + orderId + '\'' +
+                "orderLinkId=" + orderLinkId +
+                ", orderId='" + orderId + '\'' +
                 ", symbol='" + symbol + '\'' +
                 ", side='" + side + '\'' +
                 ", price=" + price +

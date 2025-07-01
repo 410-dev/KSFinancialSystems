@@ -1,5 +1,6 @@
 package acadia.lwcardano.internalization.bybit.objects;
 
+import acadia.lwcardano.internalization.utils.OrderLinkIDGen;
 import com.bybit.api.client.domain.CategoryType;
 import com.bybit.api.client.domain.trade.Side;
 
@@ -78,6 +79,20 @@ public class PositionObject {
         this.stopLoss = Objects.toString(map.get("stopLoss"), null);
         this.tradeMode = parseInt(map.get("tradeMode"));
         this.sessionAvgPrice = Objects.toString(map.get("sessionAvgPrice"), null);
+    }
+
+    public OrderObject constructOrderObject(ByBitCredentials c, String category) {
+        OrderObject o = new OrderObject(
+                c,
+                category,
+                -1,
+                side.equals(Side.SELL.toString()) ? Side.SELL : Side.BUY,
+                symbol,
+                qty,
+                OrderLinkIDGen.generate() + "-CLS",
+                0
+        );
+        return o;
     }
 
     private static int parseInt(Object value) {

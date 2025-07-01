@@ -6,6 +6,6 @@ import java.util.HashMap;
 
 public interface KSDiscreteIndicatorValueComputer {
 
-    double compute(Chart chart, HashMap<String, Object> parameters);
+    double computeDiscrete(Chart chart, HashMap<String, Object> parameters);
 
 }

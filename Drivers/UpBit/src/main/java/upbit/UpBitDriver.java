@@ -21,7 +21,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.kynesys.foundation.v1.interfaces.KSJournalingService;
 import org.kynesys.foundation.v1.utils.SIDKit;
-import org.kynesys.kstraderapi.v1.driver.TraderDriver;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriver;
 import org.kynesys.kstraderapi.v1.objects.*;
 import org.kynesys.kstraderapi.v1.utils.CurlEmulator;
 
@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class UpBitDriver implements TraderDriver {
+public class UpBitDriver implements KSExchangeDriver {
 
     private final String endpointUrl = new UpBitDriverManifest().getDriverAPIEndpoint();
     private final String exchangeName = new UpBitDriverManifest().getDriverExchangeName();
@@ -96,12 +96,12 @@ public class UpBitDriver implements TraderDriver {
     }
 
     @Override
-    public Chart getChart(Account account, HashMap<String, Object> params) throws Exception {
+    public Chart getChart(KSGenericAuthorizationObject KSGenericAuthorizationObject, HashMap<String, Object> params) throws Exception {
 
         // Check required parameters
         String[] requiredParams = {"symbol"};
         if (!getMissingParams(params, requiredParams).isEmpty()) {
-            DriverState.addState(DriverExitCode.DRIVER_BAD_DATA_ERROR, "Missing required parameters: " + getMissingParams(params, requiredParams));
+            KSExchangeDriverState.addState(KSExchangeDriverExitCode.DRIVER_BAD_DATA_ERROR, "Missing required parameters: " + getMissingParams(params, requiredParams));
             return null;
         }
 
@@ -122,14 +122,14 @@ public class UpBitDriver implements TraderDriver {
         try {
             response = CurlEmulator.curl(endpointUrl + "candles/" + intervalUnit + "/" + interval + "?market=" + symbol + "&count=" + count + "&to=" + oldestCandlestick, "GET", "accept: application/json", null);
         } catch (Exception e) {
-            DriverState.addState(DriverExitCode.SERVER_CONNECTION_ERROR, "Failed to get response from UpBit API", e);
+            KSExchangeDriverState.addState(KSExchangeDriverExitCode.SERVER_CONNECTION_ERROR, "Failed to get response from UpBit API", e);
             return null;
         }
         JsonArray json;
         try {
             json = JsonParser.parseString(response).getAsJsonArray();
         } catch (Exception e) {
-            DriverState.addState(DriverExitCode.DRIVER_BAD_DATA_ERROR, "Failed to parse response from UpBit API", e);
+            KSExchangeDriverState.addState(KSExchangeDriverExitCode.DRIVER_BAD_DATA_ERROR, "Failed to parse response from UpBit API", e);
             return null;
         }
 
@@ -165,7 +165,7 @@ public class UpBitDriver implements TraderDriver {
         UpBitCandleDataStructure firstCandle = candleData.getFirst();
 
         // Create chart object
-        Chart chart = new Chart(symbol, interval + intervalUnit.substring(0, 1), firstCandle.getOpeningTime(), lastCandle.getOpeningTime(), MarketTypes.SPOT, exchangeName, account.getUniqueID());
+        Chart chart = new Chart(symbol, interval + intervalUnit.substring(0, 1), firstCandle.getOpeningTime(), lastCandle.getOpeningTime(), MarketTypes.SPOT, exchangeName, KSGenericAuthorizationObject.getUniqueID());
 
         // Add data to chart
         // Calculate close time based on unit and interval
@@ -188,9 +188,9 @@ public class UpBitDriver implements TraderDriver {
     }
 
     @Override
-    public ArrayList<Order> getOpenOrders(Account account, HashMap<String, Object> inputParams) throws Exception {
-        String accessKey = account.getCredentials().getOrDefault(Account.CREDENTIAL_KEY_PK, "").toString();
-        String secretKey = account.getCredentials().getOrDefault(Account.CREDENTIAL_KEY_SK, "").toString();
+    public ArrayList<Order> getOpenOrders(KSGenericAuthorizationObject KSGenericAuthorizationObject, HashMap<String, Object> inputParams) throws Exception {
+        String accessKey = KSGenericAuthorizationObject.getCredentials().getOrDefault(KSGenericAuthorizationObject.CREDENTIAL_KEY_PK, "").toString();
+        String secretKey = KSGenericAuthorizationObject.getCredentials().getOrDefault(KSGenericAuthorizationObject.CREDENTIAL_KEY_SK, "").toString();
 
         // Translate symbol to market (Standard)
         HashMap<String, Object> params = new HashMap<>(inputParams);
@@ -247,7 +247,7 @@ public class UpBitDriver implements TraderDriver {
                 Order o = new Order();
                 o.setExchange(exchangeName);
                 o.setOrderId(jo.get("uuid").getAsString());
-                o.setOwnerId(account.getUniqueID());
+                o.setOwnerId(KSGenericAuthorizationObject.getUniqueID());
                 o.setBuySide("bid".equals(jo.get("side").getAsString()));
                 o.setType(jo.get("ord_type").toString().toUpperCase());
                 o.setSymbol(jo.get("market").toString());
@@ -288,9 +288,9 @@ public class UpBitDriver implements TraderDriver {
     //    https://docs.upbit.com/kr/reference/%EC%A2%85%EB%A3%8C-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
     //
     @Override
-    public ArrayList<Order> getClosedOrders(Account account, HashMap<String, Object> inputParams) throws Exception {
-        String accessKey = account.getCredentials().getOrDefault(Account.CREDENTIAL_KEY_PK, "").toString();
-        String secretKey = account.getCredentials().getOrDefault(Account.CREDENTIAL_KEY_SK, "").toString();
+    public ArrayList<Order> getClosedOrders(KSGenericAuthorizationObject KSGenericAuthorizationObject, HashMap<String, Object> inputParams) throws Exception {
+        String accessKey = KSGenericAuthorizationObject.getCredentials().getOrDefault(KSGenericAuthorizationObject.CREDENTIAL_KEY_PK, "").toString();
+        String secretKey = KSGenericAuthorizationObject.getCredentials().getOrDefault(KSGenericAuthorizationObject.CREDENTIAL_KEY_SK, "").toString();
 
         // Translate symbol to market (Standard 'symbol' to proprietary 'market')
         HashMap<String, Object> params = new HashMap<>(inputParams);
@@ -367,7 +367,7 @@ public class UpBitDriver implements TraderDriver {
                 Order o = new Order();
                 o.setExchange(exchangeName);
                 o.setOrderId(jo.get("uuid").getAsString());
-                o.setOwnerId(account.getUniqueID());
+                o.setOwnerId(KSGenericAuthorizationObject.getUniqueID());
                 o.setBuySide("bid".equals(jo.get("side").getAsString()));
                 o.setType(jo.get("ord_type").toString().toUpperCase());
                 o.setSymbol(jo.get("market").toString());
@@ -403,7 +403,7 @@ public class UpBitDriver implements TraderDriver {
 
 
     @Override
-    public Account getAccount(Account account) throws Exception {
+    public KSGenericAuthorizationObject getAccount(KSGenericAuthorizationObject KSGenericAuthorizationObject) throws Exception {
         return null;
     }
 
@@ -412,7 +412,7 @@ public class UpBitDriver implements TraderDriver {
     //
      //   https://docs.upbit.com/kr/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
     @Override
-    public Order placeOrder(Account account, Order order, HashMap<String, Object> params) throws Exception {
+    public Order placeOrder(KSGenericAuthorizationObject KSGenericAuthorizationObject, Order order, HashMap<String, Object> params) throws Exception {
 
         // Get parameters
         String symbol = order.getSymbol();
@@ -431,7 +431,7 @@ public class UpBitDriver implements TraderDriver {
         } else if (order.getType().equalsIgnoreCase("limit")) {
             orderType = "limit";
         } else {
-            DriverState.addState(DriverExitCode.DRIVER_BAD_DATA_ERROR, "Unknown order type: " + order.getType());
+            KSExchangeDriverState.addState(KSExchangeDriverExitCode.DRIVER_BAD_DATA_ERROR, "Unknown order type: " + order.getType());
             return null;
         }
 
@@ -444,7 +444,7 @@ public class UpBitDriver implements TraderDriver {
                 && !(orderType.equals("price") && order.isBuySide()) // UpBit's "price" order is a buy order
                 && !(orderType.equals("market") && !order.isBuySide())  // UpBit's "market" order is a sell order
                 && !(orderType.equals("best") && (timeInForce.equals("ioc") || timeInForce.equals("fok")))) { // UpBit's "best" order is a market order with IOC or FOK
-            DriverState.addState(DriverExitCode.DRIVER_BAD_DATA_ERROR, "Invalid order_type: " + orderType + ". Expected any of ('limit', 'price', 'market'), or 'best' with IOC/FOK for time_in_force.");
+            KSExchangeDriverState.addState(KSExchangeDriverExitCode.DRIVER_BAD_DATA_ERROR, "Invalid order_type: " + orderType + ". Expected any of ('limit', 'price', 'market'), or 'best' with IOC/FOK for time_in_force.");
             return null;
         }
 
@@ -454,8 +454,8 @@ public class UpBitDriver implements TraderDriver {
         order.getXattr().put("identifier", identifier);
         order.getXattr().put("time_in_force", timeInForce);
 
-        String accessKey = account.getCredentials().get(Account.CREDENTIAL_KEY_PK).toString();
-        String secretKey = account.getCredentials().get(Account.CREDENTIAL_KEY_SK).toString();
+        String accessKey = KSGenericAuthorizationObject.getCredentials().get(KSGenericAuthorizationObject.CREDENTIAL_KEY_PK).toString();
+        String secretKey = KSGenericAuthorizationObject.getCredentials().get(KSGenericAuthorizationObject.CREDENTIAL_KEY_SK).toString();
         String serverUrl = endpointUrl + "orders";
 
         HashMap<String, String> apiParams = new HashMap<>();
@@ -535,14 +535,14 @@ public class UpBitDriver implements TraderDriver {
     }
 
     @Override
-    public ArrayList<Order> placeOrders(Account account, ArrayList<Order> orders, HashMap<String, Object> params) throws Exception {
+    public ArrayList<Order> placeOrders(KSGenericAuthorizationObject KSGenericAuthorizationObject, ArrayList<Order> orders, HashMap<String, Object> params) throws Exception {
         return null;
     }
 
     @Override
-    public Order cancelOrder(Account account, String orderId, HashMap<String, Object> params) throws Exception {
-        String accessKey = account.getCredentials().get(Account.CREDENTIAL_KEY_PK).toString();
-        String secretKey = account.getCredentials().get(Account.CREDENTIAL_KEY_SK).toString();
+    public Order cancelOrder(KSGenericAuthorizationObject KSGenericAuthorizationObject, String orderId, HashMap<String, Object> params) throws Exception {
+        String accessKey = KSGenericAuthorizationObject.getCredentials().get(KSGenericAuthorizationObject.CREDENTIAL_KEY_PK).toString();
+        String secretKey = KSGenericAuthorizationObject.getCredentials().get(KSGenericAuthorizationObject.CREDENTIAL_KEY_SK).toString();
 
         HashMap<String, String> apiParams = new HashMap<>();
 //        apiParams.put("uuid", "cdd92199-2897-4e14-9448-f923320408ad");
@@ -612,12 +612,12 @@ public class UpBitDriver implements TraderDriver {
     }
 
     @Override
-    public ArrayList<Order> cancelOrders(Account account, ArrayList<String> orderIds, HashMap<String, Object> params) throws Exception {
+    public ArrayList<Order> cancelOrders(KSGenericAuthorizationObject KSGenericAuthorizationObject, ArrayList<String> orderIds, HashMap<String, Object> params) throws Exception {
         return null;
     }
 
     @Override
-    public HashMap<String, Double> getPrice(Account account, String[] tickers) throws Exception {
+    public HashMap<String, Double> getPrice(KSGenericAuthorizationObject KSGenericAuthorizationObject, String[] tickers) throws Exception {
         OkHttpClient client = new OkHttpClient();
 
         String markets = String.join(", ", tickers);

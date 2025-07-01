@@ -7,8 +7,8 @@ import kstradermachine.objects.Daemon;
 import kstradermachine.objects.DaemonCfg;
 import me.hysong.files.File2;
 import lombok.Getter;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
-import org.kynesys.kstraderapi.v1.strategy.TraderStrategyManifest;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
+import org.kynesys.kstraderapi.v1.strategy.KSStrategyManifest;
 
 import javax.swing.*;
 import java.awt.*;
@@ -158,7 +158,7 @@ public class EditDaemon extends JFrame {
         for (String className : drvManifests.keySet()) {
             try {
                 Class<?> clz = drvManifests.get(className);
-                TraderDriverManifest drvmanifest = (TraderDriverManifest) clz.getConstructor().newInstance();
+                KSExchangeDriverManifest drvmanifest = (KSExchangeDriverManifest) clz.getConstructor().newInstance();
                 String line = drvmanifest.getDriverName() + " (" + drvmanifest.getDriverExchange() + "," + drvmanifest.getDriverVersion() + "@" + drvmanifest.getDriverUpdateDate() + "): " + className; // Example: added [spot] for clarity
                 exchangeDriverOptions.add(line);
             } catch (Exception e) {
@@ -194,7 +194,7 @@ public class EditDaemon extends JFrame {
         for (String className : strManifest.keySet()) {
             try {
                 Class<?> clz = strManifest.get(className);
-                TraderStrategyManifest stManifest = (TraderStrategyManifest) clz.getConstructor().newInstance();
+                KSStrategyManifest stManifest = (KSStrategyManifest) clz.getConstructor().newInstance();
                 String flags = "";
                 if (stManifest.isForWS()) flags += "WS";
                 if (stManifest.isForREST()) flags += "RE";
@@ -499,8 +499,8 @@ public class EditDaemon extends JFrame {
             return;
         }
 
-        TraderDriverManifest drvManifest = Drivers.driversInstantiated.get(driverClassName);
-        TraderStrategyManifest stgManifest = Drivers.strategiesInstantiated.get(strategyClassName);
+        KSExchangeDriverManifest drvManifest = Drivers.driversInstantiated.get(driverClassName);
+        KSStrategyManifest stgManifest = Drivers.strategiesInstantiated.get(strategyClassName);
 
         if (drvManifest == null || stgManifest == null) {
             SystemLogs.log("ERROR", "Failed loading designated drivers");

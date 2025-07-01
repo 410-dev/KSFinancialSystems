@@ -3,8 +3,8 @@ package ksmanualtrader.windows;
 import lombok.Getter;
 import org.kynesys.foundation.v1.utils.LanguageKit;
 import org.kynesys.graphite.v1.GraphiteProgramLauncher;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
-import org.kynesys.kstraderapi.v1.driver.TraderDriver;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriver;
 import org.kynesys.kstraderapi.v1.objects.Order;
 
 import javax.swing.*;
@@ -16,7 +16,7 @@ public class OrderList extends JFrame {
     private int maxPage;
     private int currentPage;
 
-    private TraderDriver driver;
+    private KSExchangeDriver driver;
 
     private JLabel serverRefreshLatency;
     private JLabel currentPageLabel;
@@ -29,7 +29,7 @@ public class OrderList extends JFrame {
     private ArrayList<OrderRow> rows = new ArrayList<>();
     private JPanel tablePanel;
 
-    public OrderList(ArrayList<Order> initialList, TraderDriverManifest driver) {
+    public OrderList(ArrayList<Order> initialList, KSExchangeDriverManifest driver) {
         this.orders.clear();
         this.orders.addAll(initialList); // Safe copy
         this.driver = driver.getDriver(GraphiteProgramLauncher.getJournalingObject());
@@ -69,7 +69,7 @@ public class OrderList extends JFrame {
 
 @Getter
 class OrderRow extends JPanel {
-    private TraderDriver driver;
+    private KSExchangeDriver driver;
     private Order order;
     private JButton closeButton = new JButton(LanguageKit.getValue("ORDER_POSITION_CLOSE"));
     private JLabel amount = new JLabel();
@@ -77,7 +77,7 @@ class OrderRow extends JPanel {
     private JLabel entryPrice = new JLabel();
     private JLabel profitAndLoss = new JLabel();
 
-    public OrderRow(TraderDriver driver, Order order, int rowWidth, int rowHeight) {
+    public OrderRow(KSExchangeDriver driver, Order order, int rowWidth, int rowHeight) {
         this.order = order;
         this.driver = driver;
     }

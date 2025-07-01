@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 @Getter
-public class Account {
+public class KSGenericAuthorizationObject {
 
     public static final String CREDENTIAL_KEY_PK = "pk";
     public static final String CREDENTIAL_KEY_SK = "sk";
@@ -19,13 +19,13 @@ public class Account {
     private HashMap<String, Chart> charts; // e.g. {"Spot:BTCUSDT": ChartObject}
     private HashMap<String, ArrayList<Order>> orders; // e.g. {"Spot:BTCUSDT": [OrderObject1, OrderObject2]}
 
-    public Account(String accountType, String exchange, HashMap<String, Object> credentials) {
+    public KSGenericAuthorizationObject(String accountType, String exchange, HashMap<String, Object> credentials) {
         this.accountType = accountType;
         this.exchange = exchange;
         this.credentials = credentials;
     }
 
-    public Account(String accountType, String exchange, String pk, String sk) {
+    public KSGenericAuthorizationObject(String accountType, String exchange, String pk, String sk) {
         this.accountType = accountType;
         this.exchange = exchange;
         this.credentials = new HashMap<>();

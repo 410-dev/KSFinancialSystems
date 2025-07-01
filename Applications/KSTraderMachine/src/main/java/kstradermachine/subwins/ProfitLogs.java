@@ -2,11 +2,7 @@ package kstradermachine.subwins;
 
 import kstradermachine.backend.Drivers;
 import lombok.Getter;
-import org.kynesys.foundation.v1.interfaces.KSApplication;
-import org.kynesys.foundation.v1.interfaces.KSJournalingService;
-import org.kynesys.foundation.v1.sharedobj.KSEnvironment;
-import org.kynesys.graphite.v1.KSGraphicalApplication;
-import org.kynesys.kstraderapi.v1.misc.CurrencyUnitConverter;
+import org.kynesys.kstraderapi.v1.misc.KSCurrencyUnitConverter;
 
 
 import javax.swing.*;
@@ -124,20 +120,20 @@ public class ProfitLogs extends JFrame {
         // You'll need a more robust way if currencies vary and need live conversion.
         double totalProfit = 0;
 
-        HashMap<String, CurrencyUnitConverter> cachedConverters = new HashMap<>();
+        HashMap<String, KSCurrencyUnitConverter> cachedConverters = new HashMap<>();
 
         for (ProfitEntry entry : profitEntries) {
             if (entry.getAmountProfitRealCurrencyUnit().equals(sumUnit)) {
                 totalProfit += entry.getAmountProfitRealCurrency();
             } else {
                 String converterCacheId = entry.getAmountProfitRealCurrencyUnit() + "2" + sumUnit;
-                CurrencyUnitConverter converter;
+                KSCurrencyUnitConverter converter;
                 if (!cachedConverters.containsKey(converterCacheId)) {
                     try {
-                        Map<String, Class<?>> converterDrivers = Drivers.DriverIntrospection.findImplementations(CurrencyUnitConverter.class);
+                        Map<String, Class<?>> converterDrivers = Drivers.DriverIntrospection.findImplementations(KSCurrencyUnitConverter.class);
                         SystemLogs.log("INFO", "Found " + converterDrivers.size() + " converters. Looking for " + converterCacheId);
                         for (Class<?> driver : converterDrivers.values()) {
-                            CurrencyUnitConverter instantConverter = (CurrencyUnitConverter) driver.getDeclaredConstructor().newInstance();
+                            KSCurrencyUnitConverter instantConverter = (KSCurrencyUnitConverter) driver.getDeclaredConstructor().newInstance();
                             if (!instantConverter.getTo().equals(sumUnit)) {
                                 SystemLogs.log("WARNING", "" + converterCacheId + " does not support " + instantConverter.getTo() + " currency units");
                                 continue; // Don't load unnecessary converters

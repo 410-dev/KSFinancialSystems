@@ -1,6 +1,6 @@
 package org.kynesys.kstraderapi.v1.objects;
 
-public enum DriverExitCode {
+public enum KSExchangeDriverExitCode {
 
 
     // OK,

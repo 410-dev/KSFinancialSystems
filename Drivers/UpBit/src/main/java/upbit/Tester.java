@@ -3,7 +3,7 @@ package upbit;
 
 import me.hysong.files.ConfigurationFile;
 import me.hysong.files.File2;
-import org.kynesys.kstraderapi.v1.objects.Account;
+import org.kynesys.kstraderapi.v1.objects.KSGenericAuthorizationObject;
 
 import java.util.HashMap;
 
@@ -13,7 +13,7 @@ public class Tester {
         ConfigurationFile cfg = fc.configFileMode().load();
         String ak = cfg.get("UPBIT_AK", "");
         String sk = cfg.get("UPBIT_SK", "");
-        Account ac = new Account("spot", "upbit", ak, sk);
+        KSGenericAuthorizationObject ac = new KSGenericAuthorizationObject("spot", "upbit", ak, sk);
 
         System.out.println("AK: " + ak);
         System.out.println("SK: " + sk);

@@ -3,8 +3,8 @@ package kstradermachine.backend;
 
 import kstradermachine.KSTraderMachine;
 import kstradermachine.subwins.SystemLogs;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
-import org.kynesys.kstraderapi.v1.strategy.TraderStrategyManifest;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
+import org.kynesys.kstraderapi.v1.strategy.KSStrategyManifest;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,9 +25,9 @@ public class Drivers {
     private static ArrayList<String> jarsLoaded = new ArrayList<>();
 
     public final static HashMap<String, Class<?>> drivers = new HashMap<>();
-    public final static HashMap<String, TraderDriverManifest> driversInstantiated = new HashMap<>(); // Key:
+    public final static HashMap<String, KSExchangeDriverManifest> driversInstantiated = new HashMap<>(); // Key:
     public final static HashMap<String, Class<?>> strategies = new HashMap<>();
-    public final static HashMap<String, TraderStrategyManifest> strategiesInstantiated = new HashMap<>();
+    public final static HashMap<String, KSStrategyManifest> strategiesInstantiated = new HashMap<>();
 
     public static class DriverLoader extends URLClassLoader {
         public DriverLoader(URL[] initial, ClassLoader parent) {

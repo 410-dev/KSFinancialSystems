@@ -1,10 +1,10 @@
 package upbit;
 
 import lombok.Getter;
-import org.kynesys.kstraderapi.v1.misc.CurrencyUnitConverter;
+import org.kynesys.kstraderapi.v1.misc.KSCurrencyUnitConverter;
 
 @Getter
-public class USD2KRW implements CurrencyUnitConverter {
+public class USD2KRW implements KSCurrencyUnitConverter {
     private final String from = "USD";
     private final String to = "KRW";
 

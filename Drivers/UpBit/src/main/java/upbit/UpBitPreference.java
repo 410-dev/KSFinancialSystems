@@ -1,13 +1,13 @@
 package upbit;
 
 import lombok.Getter;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverSettings;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverSettings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 @Getter
-public class UpBitPreference extends TraderDriverSettings {
+public class UpBitPreference extends KSExchangeDriverSettings {
 
     private final String exchange;
     private final String endpoint;

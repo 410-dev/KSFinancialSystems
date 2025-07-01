@@ -1,11 +1,11 @@
 package org.kynesys.kstraderapi.v1.driver;
 
 import com.google.gson.JsonObject;
-import org.kynesys.kstraderapi.v1.objects.Account;
-import org.kynesys.kstraderapi.v1.objects.DriverExitCode;
+import org.kynesys.kstraderapi.v1.objects.KSGenericAuthorizationObject;
+import org.kynesys.kstraderapi.v1.objects.KSExchangeDriverExitCode;
 import org.kynesys.foundation.v1.interfaces.KSJournalingService;
 
-public interface TraderDriverManifest {
+public interface KSExchangeDriverManifest {
 
     String getDriverName();          // Driver name, ex. "UpBit Generic Driver"
     String getDriverExchangeName();  // Exchange name, ex. "UpBit"
@@ -22,10 +22,10 @@ public interface TraderDriverManifest {
     boolean isSupportOrderAsMarket();
     String getDriverUpdateDate();
     String[] getSupportedSymbols(); // Supported symbols, ex. ["KRW-BTC", "BTC-USDT"]
-    DriverExitCode testConnection();
-    TraderDriver getDriver(KSJournalingService logger);
-    TraderDriverSettings getPreferenceObject(String driverCfgPath);
-    Account getAccount(String type, JsonObject preferenceFile);
+    KSExchangeDriverExitCode testConnection();
+    KSExchangeDriver getDriver(KSJournalingService logger);
+    KSExchangeDriverSettings getPreferenceObject(String driverCfgPath);
+    KSGenericAuthorizationObject getAccount(String type, JsonObject preferenceFile);
 
     default String getFileSystemIdentifier() {
         return getDriverExchange() + "@" + getDriverAPIEndpoint().replace("/", "_").replace(":", "_");

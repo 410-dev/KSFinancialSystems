@@ -3,15 +3,15 @@ package upbit;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import org.kynesys.foundation.v1.interfaces.KSJournalingService;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverSettings;
-import org.kynesys.kstraderapi.v1.driver.TraderDriver;
-import org.kynesys.kstraderapi.v1.objects.Account;
-import org.kynesys.kstraderapi.v1.objects.DriverExitCode;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverSettings;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriver;
+import org.kynesys.kstraderapi.v1.objects.KSGenericAuthorizationObject;
+import org.kynesys.kstraderapi.v1.objects.KSExchangeDriverExitCode;
 
 
 @Getter
-public class UpBitDriverManifest implements TraderDriverManifest {
+public class UpBitDriverManifest implements KSExchangeDriverManifest {
     private final String driverName = "UpBit";
     private final String driverExchangeName = "UpBit";
     private final String driverExchange = "upbit.com[spot]";
@@ -34,22 +34,22 @@ public class UpBitDriverManifest implements TraderDriverManifest {
             "KRW-BCH"
     };
 
-    public DriverExitCode testConnection() {
-        return DriverExitCode.DRIVER_TEST_OK;
+    public KSExchangeDriverExitCode testConnection() {
+        return KSExchangeDriverExitCode.DRIVER_TEST_OK;
     }
 
     @Override
-    public TraderDriver getDriver(KSJournalingService logger) {
+    public KSExchangeDriver getDriver(KSJournalingService logger) {
         return new UpBitDriver(logger);
     }
 
     @Override
-    public TraderDriverSettings getPreferenceObject(String driverCfgPath) {
+    public KSExchangeDriverSettings getPreferenceObject(String driverCfgPath) {
         return new UpBitPreference(driverCfgPath);
     }
 
     @Override
-    public Account getAccount(String type, JsonObject preferenceFile) {
-        return new Account(type, driverExchange, preferenceFile.get("auth.apiAK").getAsString(), preferenceFile.get("auth.apiSK").getAsString());
+    public KSGenericAuthorizationObject getAccount(String type, JsonObject preferenceFile) {
+        return new KSGenericAuthorizationObject(type, driverExchange, preferenceFile.get("auth.apiAK").getAsString(), preferenceFile.get("auth.apiSK").getAsString());
     }
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-public abstract class StrategySettings {
+public abstract class KSStrategySettings {
     public abstract HashMap<String, Class<?>> getTypes();
     public abstract HashMap<String, HashMap<String, String>> getDescriptions();
     public abstract HashMap<String, HashMap<String, String>> getLabels();

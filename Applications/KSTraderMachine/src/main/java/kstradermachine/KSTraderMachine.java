@@ -15,9 +15,9 @@ import org.kynesys.foundation.v1.utils.StorageSetupTool;
 import org.kynesys.graphite.v1.GPSplashWindow;
 import org.kynesys.graphite.v1.GraphiteProgramLauncher;
 import org.kynesys.graphite.v1.KSGraphicalApplication;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
-import org.kynesys.kstraderapi.v1.objects.DriverExitCode;
-import org.kynesys.kstraderapi.v1.strategy.TraderStrategyManifest;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
+import org.kynesys.kstraderapi.v1.objects.KSExchangeDriverExitCode;
+import org.kynesys.kstraderapi.v1.strategy.KSStrategyManifest;
 import org.kynesys.services.notification.NotificationObject;
 
 import javax.swing.*;
@@ -97,12 +97,12 @@ public class KSTraderMachine extends KSGraphicalApplication implements KSApplica
 
         // Index drivers
         try {
-            HashMap<String, Class<?>> drivers = (HashMap<String, Class<?>>) Drivers.DriverIntrospection.findImplementations(TraderDriverManifest.class);
+            HashMap<String, Class<?>> drivers = (HashMap<String, Class<?>>) Drivers.DriverIntrospection.findImplementations(KSExchangeDriverManifest.class);
             for (String key : drivers.keySet()) {
                 Class<?> driverClass = drivers.get(key);
                 SystemLogs.log("INFO", "Driver: " + key + " -> " + driverClass.getName());
                 try {
-                    TraderDriverManifest manifest = (TraderDriverManifest) driverClass.getDeclaredConstructor().newInstance();
+                    KSExchangeDriverManifest manifest = (KSExchangeDriverManifest) driverClass.getDeclaredConstructor().newInstance();
                     Drivers.driversInstantiated.put(key, manifest);
                     Drivers.drivers.put(key, driverClass);
                 } catch (Exception ex) {
@@ -132,12 +132,12 @@ public class KSTraderMachine extends KSGraphicalApplication implements KSApplica
 
         // Index strategies
         try {
-            HashMap<String, Class<?>> strategies = (HashMap<String, Class<?>>) Drivers.DriverIntrospection.findImplementations(TraderStrategyManifest.class);
+            HashMap<String, Class<?>> strategies = (HashMap<String, Class<?>>) Drivers.DriverIntrospection.findImplementations(KSStrategyManifest.class);
             for (String key : strategies.keySet()) {
                 Class<?> strategyClass = strategies.get(key);
                 SystemLogs.log("INFO", "Strategy: " + key + " -> " + strategyClass.getName());
                 try {
-                    TraderStrategyManifest manifest = (TraderStrategyManifest) strategyClass.getDeclaredConstructor().newInstance();
+                    KSStrategyManifest manifest = (KSStrategyManifest) strategyClass.getDeclaredConstructor().newInstance();
                     Drivers.strategiesInstantiated.put(key, manifest);
                     Drivers.strategies.put(key, strategyClass);
                 } catch (Exception ex) {
@@ -218,12 +218,12 @@ public class KSTraderMachine extends KSGraphicalApplication implements KSApplica
             // Test driver connection
             SystemLogs.log("INFO", "Loaded drivers: " + Drivers.drivers.size());
             for (Class<?> driverClass : Drivers.drivers.values()) {
-                if (driverClass.isAssignableFrom(TraderDriverManifest.class)) {
+                if (driverClass.isAssignableFrom(KSExchangeDriverManifest.class)) {
                     try {
-                        TraderDriverManifest manifest = (TraderDriverManifest) driverClass.getDeclaredConstructor().newInstance();
+                        KSExchangeDriverManifest manifest = (KSExchangeDriverManifest) driverClass.getDeclaredConstructor().newInstance();
                         splashWindow.setCurrentStatus("Testing connection: " + manifest.getDriverExchange());
-                        DriverExitCode exitCode = manifest.testConnection();
-                        if (exitCode != DriverExitCode.DRIVER_TEST_OK && exitCode != DriverExitCode.OK) {
+                        KSExchangeDriverExitCode exitCode = manifest.testConnection();
+                        if (exitCode != KSExchangeDriverExitCode.DRIVER_TEST_OK && exitCode != KSExchangeDriverExitCode.OK) {
                             JOptionPane.showMessageDialog(splashWindow, "Driver connection test failed: " + manifest.getDriverExchange() + " from " + manifest.getDriverName(), "Error", JOptionPane.ERROR_MESSAGE);
                             System.exit(0);
                         } else {

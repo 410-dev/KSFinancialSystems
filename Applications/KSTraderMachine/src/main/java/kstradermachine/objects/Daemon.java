@@ -8,11 +8,11 @@ import kstradermachine.front.uiobjects.DaemonPanel;
 import kstradermachine.subwins.SystemLogs;
 import me.hysong.files.File2;
 import lombok.Getter;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
-import org.kynesys.kstraderapi.v1.objects.Account;
-import org.kynesys.kstraderapi.v1.strategy.RESTStrategy;
-import org.kynesys.kstraderapi.v1.strategy.TraderStrategyManifest;
-import org.kynesys.kstraderapi.v1.strategy.WSStrategy;
+import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
+import org.kynesys.kstraderapi.v1.objects.KSGenericAuthorizationObject;
+import org.kynesys.kstraderapi.v1.strategy.KSStrategyForRepresentationalStateTransferInterface;
+import org.kynesys.kstraderapi.v1.strategy.KSStrategyManifest;
+import org.kynesys.kstraderapi.v1.strategy.KSStrategyForWebSocketInterface;
 
 
 import javax.swing.*;
@@ -23,8 +23,8 @@ public class Daemon {
     private final int slot;
     private DaemonCfg cfg;
 
-    private TraderStrategyManifest strategyManifest;
-    private TraderDriverManifest driverManifest;
+    private KSStrategyManifest strategyManifest;
+    private KSExchangeDriverManifest driverManifest;
 
     private boolean terminateQueued = false;
 
@@ -55,12 +55,12 @@ public class Daemon {
                 if (prefObject.has("settings")) {
                     prefObject = prefObject.get("settings").getAsJsonObject();
                 }
-                Account account = driverManifest.getAccount(cfg.getTraderMode(), prefObject);
+                KSGenericAuthorizationObject KSGenericAuthorizationObject = driverManifest.getAccount(cfg.getTraderMode(), prefObject);
 
                 if (strategyManifest.isForREST()) {
-                    RESTStrategy restStrat = strategyManifest.getRESTStrategy(journalingAgent);
+                    KSStrategyForRepresentationalStateTransferInterface restStrat = strategyManifest.getRESTStrategy(journalingAgent);
                     try {
-                        restStrat.loop(account, cfg.getSymbol().split(","), driverManifest, driverManifest.getDriver(journalingAgent), journalingAgent);
+                        restStrat.loop(KSGenericAuthorizationObject, cfg.getSymbol().split(","), driverManifest, driverManifest.getDriver(journalingAgent), journalingAgent);
                         Thread.sleep((long) (restStrat.getPreferredLatency() * 1000));
                     } catch (InterruptedException e) {
                         SystemLogs.log("INFO", "REST Daemon " + cfg.getSlot() + " worker interrupted during sleep. Terminating.");
@@ -72,9 +72,9 @@ public class Daemon {
                         // For now, let's assume it might be recoverable or part of strategy
                     }
                 } else if (strategyManifest.isForWS()) {
-                    WSStrategy wsStrat = strategyManifest.getWSStrategy(journalingAgent);
+                    KSStrategyForWebSocketInterface wsStrat = strategyManifest.getWSStrategy(journalingAgent);
                     try {
-                        wsStrat.loop(account, cfg.getSymbol().split(","), driverManifest, driverManifest.getDriver(journalingAgent), journalingAgent);
+                        wsStrat.loop(KSGenericAuthorizationObject, cfg.getSymbol().split(","), driverManifest, driverManifest.getDriver(journalingAgent), journalingAgent);
                         // WSStrategy loop should ideally handle its own latency or blocking.
                         // If wsStrat.loop() is blocking and checks terminateQueued, Thread.sleep might not be needed.
                         // If it's non-blocking and needs a pause, this sleep is okay.
@@ -133,7 +133,7 @@ public class Daemon {
             return;
         }
         try {
-            this.driverManifest = (TraderDriverManifest) drv.getConstructor().newInstance();
+            this.driverManifest = (KSExchangeDriverManifest) drv.getConstructor().newInstance();
         } catch (Exception e) {
             SystemLogs.log("ERROR", "Slot " + slot + " failed to instantiate driver " + cfg.getExchangeDriverClass() + ": " + e.getMessage());
             e.printStackTrace();
@@ -147,7 +147,7 @@ public class Daemon {
             return;
         }
         try {
-            this.strategyManifest = (TraderStrategyManifest) stg.getConstructor().newInstance();
+            this.strategyManifest = (KSStrategyManifest) stg.getConstructor().newInstance();
         } catch (Exception e) {
             SystemLogs.log("ERROR", "Slot " + slot + " failed to instantiate strategy " + cfg.getStrategyName() + ": " + e.getMessage());
             e.printStackTrace();

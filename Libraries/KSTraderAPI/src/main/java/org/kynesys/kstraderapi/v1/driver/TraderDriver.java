@@ -7,7 +7,7 @@ import org.kynesys.kstraderapi.v1.objects.Order;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public interface TraderDriverV1 {
+public interface TraderDriver {
 
     /**
      * Get chart data

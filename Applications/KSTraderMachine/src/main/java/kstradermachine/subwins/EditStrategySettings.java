@@ -3,7 +3,7 @@ package kstradermachine.subwins;
 
 import kstradermachine.objects.Daemon;
 import org.kynesys.foundation.v1.utils.LanguageKit;
-import org.kynesys.kstraderapi.v1.strategy.StrategySettingsV1;
+import org.kynesys.kstraderapi.v1.strategy.StrategySettings;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,7 +21,7 @@ public class EditStrategySettings extends JFrame {
 
         // Get preferences
         HashMap<String, Object> settingsRaw = d.getCfg().getSettings();
-        StrategySettingsV1 settings = d.getStrategyManifest().parseSettings(settingsRaw);
+        StrategySettings settings = d.getStrategyManifest().parseSettings(settingsRaw);
 
 
         // Get language code

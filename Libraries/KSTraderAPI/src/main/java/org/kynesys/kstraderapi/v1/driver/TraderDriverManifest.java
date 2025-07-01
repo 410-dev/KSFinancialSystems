@@ -5,7 +5,7 @@ import org.kynesys.kstraderapi.v1.objects.Account;
 import org.kynesys.kstraderapi.v1.objects.DriverExitCode;
 import org.kynesys.foundation.v1.interfaces.KSJournalingService;
 
-public interface TraderDriverManifestV1 {
+public interface TraderDriverManifest {
 
     String getDriverName();          // Driver name, ex. "UpBit Generic Driver"
     String getDriverExchangeName();  // Exchange name, ex. "UpBit"
@@ -23,8 +23,8 @@ public interface TraderDriverManifestV1 {
     String getDriverUpdateDate();
     String[] getSupportedSymbols(); // Supported symbols, ex. ["KRW-BTC", "BTC-USDT"]
     DriverExitCode testConnection();
-    TraderDriverV1 getDriver(KSJournalingService logger);
-    TraderDriverSettingsV1 getPreferenceObject(String driverCfgPath);
+    TraderDriver getDriver(KSJournalingService logger);
+    TraderDriverSettings getPreferenceObject(String driverCfgPath);
     Account getAccount(String type, JsonObject preferenceFile);
 
     default String getFileSystemIdentifier() {

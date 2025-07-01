@@ -13,7 +13,7 @@ import org.kynesys.foundation.v1.utils.StorageSetupTool;
 import org.kynesys.graphite.v1.GPSplashWindow;
 import org.kynesys.graphite.v1.GraphiteProgramLauncher;
 import org.kynesys.graphite.v1.KSGraphicalApplication;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifestV1;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -277,12 +277,12 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
 
         // Index drivers
         try {
-            HashMap<String, Class<?>> drivers = (HashMap<String, Class<?>>) Drivers.DriverIntrospection.findImplementations(TraderDriverManifestV1.class);
+            HashMap<String, Class<?>> drivers = (HashMap<String, Class<?>>) Drivers.DriverIntrospection.findImplementations(TraderDriverManifest.class);
             for (String key : drivers.keySet()) {
                 Class<?> driverClass = drivers.get(key);
                 GraphiteProgramLauncher.getJournalingObject().log("INFO", "Driver: " + key + " -> " + driverClass.getName());
                 try {
-                    TraderDriverManifestV1 manifest = (TraderDriverManifestV1) driverClass.getDeclaredConstructor().newInstance();
+                    TraderDriverManifest manifest = (TraderDriverManifest) driverClass.getDeclaredConstructor().newInstance();
                     Drivers.driversInstantiated.put(key, manifest);
                     Drivers.drivers.put(key, driverClass);
                 } catch (Exception ex) {

@@ -7,12 +7,8 @@ import kstradermachine.objects.Daemon;
 import kstradermachine.objects.DaemonCfg;
 import me.hysong.files.File2;
 import lombok.Getter;
-import org.kynesys.foundation.v1.interfaces.KSApplication;
-import org.kynesys.foundation.v1.interfaces.KSJournalingService;
-import org.kynesys.foundation.v1.sharedobj.KSEnvironment;
-import org.kynesys.graphite.v1.KSGraphicalApplication;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifestV1;
-import org.kynesys.kstraderapi.v1.strategy.TraderStrategyManifestV1;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
+import org.kynesys.kstraderapi.v1.strategy.TraderStrategyManifest;
 
 import javax.swing.*;
 import java.awt.*;
@@ -162,7 +158,7 @@ public class EditDaemon extends JFrame {
         for (String className : drvManifests.keySet()) {
             try {
                 Class<?> clz = drvManifests.get(className);
-                TraderDriverManifestV1 drvmanifest = (TraderDriverManifestV1) clz.getConstructor().newInstance();
+                TraderDriverManifest drvmanifest = (TraderDriverManifest) clz.getConstructor().newInstance();
                 String line = drvmanifest.getDriverName() + " (" + drvmanifest.getDriverExchange() + "," + drvmanifest.getDriverVersion() + "@" + drvmanifest.getDriverUpdateDate() + "): " + className; // Example: added [spot] for clarity
                 exchangeDriverOptions.add(line);
             } catch (Exception e) {
@@ -198,7 +194,7 @@ public class EditDaemon extends JFrame {
         for (String className : strManifest.keySet()) {
             try {
                 Class<?> clz = strManifest.get(className);
-                TraderStrategyManifestV1 stManifest = (TraderStrategyManifestV1) clz.getConstructor().newInstance();
+                TraderStrategyManifest stManifest = (TraderStrategyManifest) clz.getConstructor().newInstance();
                 String flags = "";
                 if (stManifest.isForWS()) flags += "WS";
                 if (stManifest.isForREST()) flags += "RE";
@@ -503,8 +499,8 @@ public class EditDaemon extends JFrame {
             return;
         }
 
-        TraderDriverManifestV1 drvManifest = Drivers.driversInstantiated.get(driverClassName);
-        TraderStrategyManifestV1 stgManifest = Drivers.strategiesInstantiated.get(strategyClassName);
+        TraderDriverManifest drvManifest = Drivers.driversInstantiated.get(driverClassName);
+        TraderStrategyManifest stgManifest = Drivers.strategiesInstantiated.get(strategyClassName);
 
         if (drvManifest == null || stgManifest == null) {
             SystemLogs.log("ERROR", "Failed loading designated drivers");

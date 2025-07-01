@@ -1,13 +1,13 @@
 package upbit;
 
 import lombok.Getter;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverSettingsV1;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverSettings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 @Getter
-public class UpBitPreference extends TraderDriverSettingsV1 {
+public class UpBitPreference extends TraderDriverSettings {
 
     private final String exchange;
     private final String endpoint;
@@ -16,8 +16,8 @@ public class UpBitPreference extends TraderDriverSettingsV1 {
 
     public UpBitPreference(String driverCfgPath) {
         super(driverCfgPath);
-        exchange = new UpBitDriverManifestV1().getDriverExchange();
-        endpoint = new UpBitDriverManifestV1().getDriverAPIEndpoint();
+        exchange = new UpBitDriverManifest().getDriverExchange();
+        endpoint = new UpBitDriverManifest().getDriverAPIEndpoint();
         compose();
     }
 

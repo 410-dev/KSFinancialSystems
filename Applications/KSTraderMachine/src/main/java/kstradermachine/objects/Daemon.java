@@ -8,11 +8,11 @@ import kstradermachine.front.uiobjects.DaemonPanel;
 import kstradermachine.subwins.SystemLogs;
 import me.hysong.files.File2;
 import lombok.Getter;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifestV1;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
 import org.kynesys.kstraderapi.v1.objects.Account;
-import org.kynesys.kstraderapi.v1.strategy.RESTStrategyV1;
-import org.kynesys.kstraderapi.v1.strategy.TraderStrategyManifestV1;
-import org.kynesys.kstraderapi.v1.strategy.WSStrategyV1;
+import org.kynesys.kstraderapi.v1.strategy.RESTStrategy;
+import org.kynesys.kstraderapi.v1.strategy.TraderStrategyManifest;
+import org.kynesys.kstraderapi.v1.strategy.WSStrategy;
 
 
 import javax.swing.*;
@@ -23,8 +23,8 @@ public class Daemon {
     private final int slot;
     private DaemonCfg cfg;
 
-    private TraderStrategyManifestV1 strategyManifest;
-    private TraderDriverManifestV1 driverManifest;
+    private TraderStrategyManifest strategyManifest;
+    private TraderDriverManifest driverManifest;
 
     private boolean terminateQueued = false;
 
@@ -58,7 +58,7 @@ public class Daemon {
                 Account account = driverManifest.getAccount(cfg.getTraderMode(), prefObject);
 
                 if (strategyManifest.isForREST()) {
-                    RESTStrategyV1 restStrat = strategyManifest.getRESTStrategy(journalingAgent);
+                    RESTStrategy restStrat = strategyManifest.getRESTStrategy(journalingAgent);
                     try {
                         restStrat.loop(account, cfg.getSymbol().split(","), driverManifest, driverManifest.getDriver(journalingAgent), journalingAgent);
                         Thread.sleep((long) (restStrat.getPreferredLatency() * 1000));
@@ -72,7 +72,7 @@ public class Daemon {
                         // For now, let's assume it might be recoverable or part of strategy
                     }
                 } else if (strategyManifest.isForWS()) {
-                    WSStrategyV1 wsStrat = strategyManifest.getWSStrategy(journalingAgent);
+                    WSStrategy wsStrat = strategyManifest.getWSStrategy(journalingAgent);
                     try {
                         wsStrat.loop(account, cfg.getSymbol().split(","), driverManifest, driverManifest.getDriver(journalingAgent), journalingAgent);
                         // WSStrategy loop should ideally handle its own latency or blocking.
@@ -133,7 +133,7 @@ public class Daemon {
             return;
         }
         try {
-            this.driverManifest = (TraderDriverManifestV1) drv.getConstructor().newInstance();
+            this.driverManifest = (TraderDriverManifest) drv.getConstructor().newInstance();
         } catch (Exception e) {
             SystemLogs.log("ERROR", "Slot " + slot + " failed to instantiate driver " + cfg.getExchangeDriverClass() + ": " + e.getMessage());
             e.printStackTrace();
@@ -147,7 +147,7 @@ public class Daemon {
             return;
         }
         try {
-            this.strategyManifest = (TraderStrategyManifestV1) stg.getConstructor().newInstance();
+            this.strategyManifest = (TraderStrategyManifest) stg.getConstructor().newInstance();
         } catch (Exception e) {
             SystemLogs.log("ERROR", "Slot " + slot + " failed to instantiate strategy " + cfg.getStrategyName() + ": " + e.getMessage());
             e.printStackTrace();

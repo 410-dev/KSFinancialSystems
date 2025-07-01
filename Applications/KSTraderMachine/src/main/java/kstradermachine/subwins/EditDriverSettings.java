@@ -3,8 +3,8 @@ package kstradermachine.subwins;
 import kstradermachine.KSTraderMachine;
 import me.hysong.files.File2;
 import org.kynesys.foundation.v1.utils.LanguageKit;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifestV1;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverSettingsV1;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverSettings;
 
 
 import javax.swing.*;
@@ -15,15 +15,15 @@ import java.util.Map;
 
 public class EditDriverSettings extends JFrame {
 
-    private final TraderDriverManifestV1 manifest;
+    private final TraderDriverManifest manifest;
     private final HashMap<String, JTextField> inputFields = new HashMap<>(); // To store references to text fields
 
-    public EditDriverSettings(TraderDriverManifestV1 manifest) {
+    public EditDriverSettings(TraderDriverManifest manifest) {
         this.manifest = manifest;
 
         // Get preferences
         String prefLoc = new File2(KSTraderMachine.storagePath + "/configs/drivers/" + manifest.getFileSystemIdentifier() + ".json").getAbsolutePath();
-        TraderDriverSettingsV1 settings = manifest.getPreferenceObject(prefLoc);
+        TraderDriverSettings settings = manifest.getPreferenceObject(prefLoc);
 
         // Get language code
         String language = LanguageKit.getValue("CURRENT_LANGUAGE");

@@ -4,11 +4,7 @@ import kstradermachine.KSTraderMachine;
 import kstradermachine.backend.Drivers;
 import me.hysong.files.File2;
 import lombok.Getter;
-import org.kynesys.foundation.v1.interfaces.KSApplication;
-import org.kynesys.foundation.v1.interfaces.KSJournalingService;
-import org.kynesys.foundation.v1.sharedobj.KSEnvironment;
-import org.kynesys.graphite.v1.KSGraphicalApplication;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifestV1;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
 
 
 import javax.swing.*;
@@ -39,15 +35,15 @@ public class SettingsWindow extends JFrame { // Changed class name slightly
     private DefaultListModel<String> exchangesListModel;
 
     // Data: Exchanges map (key: display name, value: could be a configuration object or similar)
-    private final HashMap<String, TraderDriverManifestV1> exchangesMap = new HashMap<>();
+    private final HashMap<String, TraderDriverManifest> exchangesMap = new HashMap<>();
 
     public SettingsWindow() {
         // Constructor: Initialize data or perform pre-UI setup if needed.
         // For demonstration, let's populate exchangesMap with some data.
         // In a real application, this data would come from your backend/storage.
 
-        HashMap<String, TraderDriverManifestV1> drivers = Drivers.driversInstantiated;
-        for (TraderDriverManifestV1 driverManifest : drivers.values()) {
+        HashMap<String, TraderDriverManifest> drivers = Drivers.driversInstantiated;
+        for (TraderDriverManifest driverManifest : drivers.values()) {
             exchangesMap.put(driverManifest.getDriverName(), driverManifest);
         }
 
@@ -154,9 +150,9 @@ public class SettingsWindow extends JFrame { // Changed class name slightly
         refreshListButton.addActionListener(e -> {
             KSTraderMachine.currentInstance.loadDrivers();
             KSTraderMachine.currentInstance.loadStrategies();
-            HashMap<String, TraderDriverManifestV1> drivers = Drivers.driversInstantiated;
+            HashMap<String, TraderDriverManifest> drivers = Drivers.driversInstantiated;
             exchangesMap.clear();
-            for (TraderDriverManifestV1 driverManifest : drivers.values()) {
+            for (TraderDriverManifest driverManifest : drivers.values()) {
                 exchangesMap.put(driverManifest.getDriverName(), driverManifest);
             }
             populateExchangesList();
@@ -181,7 +177,7 @@ public class SettingsWindow extends JFrame { // Changed class name slightly
 
     private void openExchangeDetailWindow(String exchangeName) {
         // Get driver manifest
-        TraderDriverManifestV1 manifest = exchangesMap.get(exchangeName);
+        TraderDriverManifest manifest = exchangesMap.get(exchangeName);
 
         // Create content for the new frame
         try {

@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public abstract class TraderDriverSettingsV1 {
+public abstract class TraderDriverSettings {
 
     @Setter private String driverCfgPath;
 
@@ -22,7 +22,7 @@ public abstract class TraderDriverSettingsV1 {
     public abstract String getEndpoint();
     public abstract String validateValue(String key);
 
-    public TraderDriverSettingsV1(String driverCfgPath) {
+    public TraderDriverSettings(String driverCfgPath) {
         this.driverCfgPath = driverCfgPath;
     }
 

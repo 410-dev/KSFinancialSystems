@@ -3,15 +3,15 @@ package upbit;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import org.kynesys.foundation.v1.interfaces.KSJournalingService;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverManifestV1;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverSettingsV1;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverV1;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverManifest;
+import org.kynesys.kstraderapi.v1.driver.TraderDriverSettings;
+import org.kynesys.kstraderapi.v1.driver.TraderDriver;
 import org.kynesys.kstraderapi.v1.objects.Account;
 import org.kynesys.kstraderapi.v1.objects.DriverExitCode;
 
 
 @Getter
-public class UpBitDriverManifestV1 implements TraderDriverManifestV1 {
+public class UpBitDriverManifest implements TraderDriverManifest {
     private final String driverName = "UpBit";
     private final String driverExchangeName = "UpBit";
     private final String driverExchange = "upbit.com[spot]";
@@ -39,12 +39,12 @@ public class UpBitDriverManifestV1 implements TraderDriverManifestV1 {
     }
 
     @Override
-    public TraderDriverV1 getDriver(KSJournalingService logger) {
-        return new UpBitDriverV1(logger);
+    public TraderDriver getDriver(KSJournalingService logger) {
+        return new UpBitDriver(logger);
     }
 
     @Override
-    public TraderDriverSettingsV1 getPreferenceObject(String driverCfgPath) {
+    public TraderDriverSettings getPreferenceObject(String driverCfgPath) {
         return new UpBitPreference(driverCfgPath);
     }
 

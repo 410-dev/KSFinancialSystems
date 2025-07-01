@@ -1,28 +1,11 @@
 package upbit;
 
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import me.hysong.files.ConfigurationFile;
 import me.hysong.files.File2;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.kynesys.kstraderapi.v1.objects.Account;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class Tester {
     public static void main(String[] args) throws Exception {
@@ -35,8 +18,8 @@ public class Tester {
         System.out.println("AK: " + ak);
         System.out.println("SK: " + sk);
 
-        UpBitDriverManifestV1 drvm = new UpBitDriverManifestV1();
-        UpBitDriverV1 drv = (UpBitDriverV1) drvm.getDriver((status, message) -> System.out.println("[ " + status + " ] " + message));
+        UpBitDriverManifest drvm = new UpBitDriverManifest();
+        UpBitDriver drv = (UpBitDriver) drvm.getDriver((status, message) -> System.out.println("[ " + status + " ] " + message));
 
         HashMap<String, Object> param = new HashMap<>();
         param.put("symbol", "KRW-BTC");

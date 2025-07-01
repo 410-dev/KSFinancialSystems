@@ -21,7 +21,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.kynesys.foundation.v1.interfaces.KSJournalingService;
 import org.kynesys.foundation.v1.utils.SIDKit;
-import org.kynesys.kstraderapi.v1.driver.TraderDriverV1;
+import org.kynesys.kstraderapi.v1.driver.TraderDriver;
 import org.kynesys.kstraderapi.v1.objects.*;
 import org.kynesys.kstraderapi.v1.utils.CurlEmulator;
 
@@ -38,10 +38,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class UpBitDriverV1 implements TraderDriverV1 {
+public class UpBitDriver implements TraderDriver {
 
-    private final String endpointUrl = new UpBitDriverManifestV1().getDriverAPIEndpoint();
-    private final String exchangeName = new UpBitDriverManifestV1().getDriverExchangeName();
+    private final String endpointUrl = new UpBitDriverManifest().getDriverAPIEndpoint();
+    private final String exchangeName = new UpBitDriverManifest().getDriverExchangeName();
 
     private static ArrayList<String> getMissingParams(HashMap<String, Object> params, String[] requiredParams) {
         ArrayList<String> missingParams = new ArrayList<>();
@@ -91,7 +91,7 @@ public class UpBitDriverV1 implements TraderDriverV1 {
         }
     }
 
-    public UpBitDriverV1(KSJournalingService ksJournalingService) {
+    public UpBitDriver(KSJournalingService ksJournalingService) {
 
     }
 

@@ -4,7 +4,7 @@ import org.kynesys.foundation.v1.interfaces.KSJournalingService;
 
 import java.util.HashMap;
 
-public interface TraderStrategyManifestV1 {
+public interface TraderStrategyManifest {
 
     String getStrategyName();
     String getStrategyVersion();
@@ -16,10 +16,10 @@ public interface TraderStrategyManifestV1 {
     boolean isSupportPerpetual();
     boolean isSupportOrderAsLimit();
     boolean isSupportOrderAsMarket();
-    StrategySettingsV1 parseSettings(HashMap<String, Object> settings);
+    StrategySettings parseSettings(HashMap<String, Object> settings);
 
-    RESTStrategyV1 getRESTStrategy(KSJournalingService logger);
-    WSStrategyV1 getWSStrategy(KSJournalingService logger);
+    RESTStrategy getRESTStrategy(KSJournalingService logger);
+    WSStrategy getWSStrategy(KSJournalingService logger);
 
 
 }

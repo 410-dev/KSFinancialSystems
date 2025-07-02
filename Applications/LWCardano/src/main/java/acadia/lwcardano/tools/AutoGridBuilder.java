@@ -2,13 +2,13 @@ package acadia.lwcardano.tools;
 
 import acadia.lwcardano.LWCardanoApplication;
 import acadia.lwcardano.Logger;
-import me.hysong.files.ConfigurationFile;
+import acadia.lwcardano.internalization.objects.ConfigurationFile;
 
 import javax.swing.*;
 import java.util.Arrays;
 
 public class AutoGridBuilder {
-    public static void make(ConfigurationFile cfgFile) {
+    public static void make(ConfigurationFile cfgFile, double currentPrice) {
         Logger.log("INFO", "Generating grid from autogrid configuration section..");
         // Check if keys exist and is not empty
         String[] keys = new String[]{"autogrid-start", "autogrid-steps", "autogrid-count"};

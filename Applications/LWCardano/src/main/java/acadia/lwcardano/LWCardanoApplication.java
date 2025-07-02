@@ -6,14 +6,14 @@ import acadia.lwcardano.internalization.bybit.objects.ByBitCredentials;
 import acadia.lwcardano.internalization.bybit.objects.GridLine;
 import acadia.lwcardano.internalization.bybit.objects.OrderObject;
 import acadia.lwcardano.internalization.bybit.objects.PositionObject;
+import acadia.lwcardano.internalization.objects.ConfigurationFile;
+import acadia.lwcardano.internalization.objects.File2;
 import acadia.lwcardano.tools.ActionHooks;
 import acadia.lwcardano.tools.AutoGridBuilder;
 import acadia.lwcardano.tools.HeadlessDialogs;
 import acadia.lwcardano.tools.ProgramGridBuilder;
 import com.bybit.api.client.domain.trade.Side;
 import lombok.extern.java.Log;
-import me.hysong.files.ConfigurationFile;
-import me.hysong.files.File2;
 
 import javax.swing.*;
 import java.util.*;
@@ -34,7 +34,7 @@ public class LWCardanoApplication {
 
     public static boolean debugMode = false;
     public static boolean verbose = false;
-    public static String build = "2 5 J 0 1 B 4"; // 앞 2글자: 연도, 다음 1글자: 월의 첫 글자, 다음 2글자: 날짜, 다음 1글자: 월이 겹치면 알파벳 하나 증가 (April, August 등), 다음 1글자: 리비젼 16진수 (1~F)
+    public static String build = "2 5 J 0 2 B 6"; // 앞 2글자: 연도, 다음 1글자: 월의 첫 글자, 다음 2글자: 날짜, 다음 1글자: 월이 겹치면 알파벳 하나 증가 (April, August 등), 다음 1글자: 리비젼 16진수 (1~F)
 
     public static void main(String[] args) {
 
@@ -94,6 +94,9 @@ public class LWCardanoApplication {
             return;
         }
 
+        Logger.log("");
+        Logger.log("LWCARDANO PROGRAM START!!!!");
+
         // Load settings
         cfgPath = cfgPath.substring(cfgPath.indexOf("=") + 1);
         ConfigurationFile cfgFile = new File2(cfgPath).configFileMode().load();
@@ -102,10 +105,15 @@ public class LWCardanoApplication {
         String ak = cfgFile.get("ak");
         String sk = cfgFile.get("sk");
         credentials = new ByBitCredentials(endpoint, ak, sk);
+        cfg = cfgFile;
+
 
         // Grid build mode
         if (!notGridBuildMode) {
-            AutoGridBuilder.make(cfgFile);
+            Logger.log("INFO", "현재 가격 가져오는중...");
+            double currentPrice = Market.getCurrentPrice(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"));
+            Logger.log("INFO", "현재가: " + currentPrice);
+            AutoGridBuilder.make(cfgFile, currentPrice);
         }
 
         boolean actionHookSuccess = ActionHooks.onStart(credentials, cfgFile);
@@ -114,8 +122,6 @@ public class LWCardanoApplication {
             System.exit(0);
             return;
         }
-
-        cfg = cfgFile;
 
 
         /*
@@ -126,9 +132,6 @@ public class LWCardanoApplication {
             System.out.println(Orders.enumerateOrderHistory(credentials, "FUTURE", "BTCUSDT", 200));
             return;
         }
-
-        Logger.log("");
-        Logger.log("LWCARDANO PROGRAM START!!!!");
 
         /*
         초기 셋팅
@@ -166,10 +169,8 @@ public class LWCardanoApplication {
             }
             Logger.log("거래 체결 감지... filledOrder 리스트 길이: " + filledOrders.size());
 
-            if (debugMode) {
-                for (int i = 0; i < filledOrders.size(); i++) {
-                    Logger.log("DEBUG", "Filled order [" + i + "]: " + filledOrders.get(i));
-                }
+            for (int i = 0; i < filledOrders.size(); i++) {
+                Logger.log("DEBUG", "Filled order [" + i + "]: " + filledOrders.get(i));
             }
 
             /*
@@ -260,7 +261,11 @@ public class LWCardanoApplication {
                 Logger.log("기존 리셋 트리거 취소 요청 전송");
                 String response = "";
                 if (!firstRun) {
-                    response = resetTriggerOrder.cancel();
+                    if (resetTriggerOrder.getOrderLinkId().endsWith("-RST")) {
+                        response = resetTriggerOrder.cancel();
+                    } else {
+                        Logger.log("WARNING", "리셋 트리거의 링크 ID (SID) 값이 RST 로 끝나지 않습니다. 정식 리셋 트리거가 아니므로 리셋이 트리거 되지 않았습니다.");
+                    }
                 } else {
                     Logger.log("최초 실행 감지, 트리거 취소 요청 취하");
                     firstRun = false;
@@ -297,6 +302,7 @@ public class LWCardanoApplication {
                 PositionObject currentPosition = pos.get(symbol);
                 double quantity = currentPosition.getQty();
                 resetTriggerOrder = new OrderObject(credentials, category, price, side, symbol, quantity, orderLinkId, newRstTriggerDirection);
+                Logger.log("DEBUG", "리셋 트리거 주문 데이터: " + resetTriggerOrder);
                 boolean success = resetTriggerOrder.placeOrder();
                 if (success) {
                     Logger.log("리셋 트리거 설정 완료: " + resetTriggerOrder.getOrderLinkId() + "@" + resetTriggerOrder.getPrice() + " (d=" + resetTriggerOrder.getSide() + ", q=" + resetTriggerOrder.getQty() + ")");

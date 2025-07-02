@@ -1,7 +1,8 @@
 package acadia.lwcardano;
 
 
-import me.hysong.files.File2;
+
+import acadia.lwcardano.internalization.objects.File2;
 
 import javax.swing.*;
 import java.time.LocalDateTime;
@@ -21,7 +22,11 @@ public class Logger {
     }
 
     public static void log(String message) {
-        log("INFO", message);
+        internalLog("INFO", message);
+    }
+
+    public static void log(String state, String message) {
+        internalLog(state, message);
     }
 
     /**
@@ -32,9 +37,8 @@ public class Logger {
      * @param status  A String representing the status of the log entry (e.g., "INFO", "ERROR", "DEBUG"). Cannot be null.
      * @param message The log message content. Cannot be null.
      */
-    public static void log(String status, String message) {
-        if (status.equals("DEBUG") && !LWCardanoApplication.debugMode) return;
-        else if (status.equals("DEEP-DEBUG") && !LWCardanoApplication.verbose) return;
+    public static void internalLog(String status, String message) {
+
         Objects.requireNonNull(status, "Status cannot be null");
         Objects.requireNonNull(message, "Message cannot be null");
 
@@ -50,11 +54,9 @@ public class Logger {
         // Index 0: Thread.getStackTrace
         // Index 1: Logger.log (this method)
         // Index 2: The method that called Logger.log
-        if (stackTrace.length > 2) {
-            callerClassName = stackTrace[2].getClassName(); // Get canonical class name
+        if (stackTrace.length > 3) {
+            callerClassName = stackTrace[3].getClassName(); // Get canonical class name
         }
-
-        callerClassName = "";
 
         // Format and print the log message
         String output = String.format("[%s] [%s] [%s] %s",
@@ -62,7 +64,6 @@ public class Logger {
                 callerClassName,
                 status,
                 message);
-        System.out.println(output);
 
         File2 logFile = new File2("logs/" + logTimestamp + ".log");
         try {
@@ -70,10 +71,16 @@ public class Logger {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if ((status.equals("DEBUG") && !LWCardanoApplication.debugMode)
+                || (status.equals("DEEP-DEBUG") && !LWCardanoApplication.verbose)) {
+            return;
+        }
+        System.out.println(output);
+
     }
 
     public static void log(String status, String message, Throwable throwable) {
-        log(status, message);
+        internalLog(status, message);
         throwable.printStackTrace();
     }
 

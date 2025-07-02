@@ -144,7 +144,7 @@ public class PositionObject {
 
     @Override
     public String toString() {
-        return "PositionObject{symbol=" + symbol + ", leverage=" + leverage + ", avgPrice=" + avgPrice + ", positionValue=" + positionValue + ", qty=" + qty + "}";
+        return "PositionObject{symbol=" + symbol + ", leverage=" + leverage + ", avgPrice=" + avgPrice + ", positionValue=" + positionValue + ", qty=" + qty + ", side=" + side + ", updatedTime=" + updatedTime + "}";
     }
 }
 

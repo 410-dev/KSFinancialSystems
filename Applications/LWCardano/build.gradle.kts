@@ -16,8 +16,6 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation(project(":Libraries:liblks"))
-
     implementation("io.github.wuhewuhe:bybit-java-api:1.2.7")
     implementation("com.google.code.gson:gson:2.12.1")
 

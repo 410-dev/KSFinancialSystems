@@ -3,9 +3,9 @@ package acadia.lwcardano.tools;
 import acadia.lwcardano.Logger;
 import acadia.lwcardano.internalization.bybit.objects.GridLine;
 import acadia.lwcardano.internalization.bybit.objects.OrderObject;
+import acadia.lwcardano.internalization.objects.ConfigurationFile;
 import acadia.lwcardano.internalization.utils.OrderLinkIDGen;
 import com.bybit.api.client.domain.trade.Side;
-import me.hysong.files.ConfigurationFile;
 
 import javax.swing.*;
 import java.util.LinkedHashMap;
@@ -46,7 +46,7 @@ public class ProgramGridBuilder {
             }
             GridLine gl = new GridLine(gridRaw[i], linkId, currentPrice < gridValue ? Side.SELL : Side.BUY, Double.parseDouble(cfgFile.get("fund")) / gridValue * leverage, currentPrice < gridValue ? OrderObject.DIRECTION_RISES_TO : OrderObject.DIRECTION_FALLS_TO);
             grid.put(gridRaw[i], gl);
-//            Logger.log("INFO", "Grid data generated: " + gl.getQuantity() + "@" + gl.getPrice());
+            Logger.log("DEBUG", "Grid data generated: " + gl.getQuantity() + "@" + gl.getPrice());
         }
 
         // 반환

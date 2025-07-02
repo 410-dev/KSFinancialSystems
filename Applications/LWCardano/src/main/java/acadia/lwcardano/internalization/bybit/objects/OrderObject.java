@@ -212,7 +212,7 @@ public class OrderObject {
     }
 
     public String cancel() {
-        return Orders.cancelOrder(credentials, category, symbol, this.orderId);
+        return Orders.cancelOrder(credentials, category, symbol, this.orderLinkId);
     }
 
     public long getCreatedTimeAsLong() {

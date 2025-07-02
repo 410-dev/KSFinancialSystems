@@ -5,8 +5,8 @@ import acadia.lwcardano.internalization.bybit.Orders;
 import acadia.lwcardano.internalization.bybit.objects.ByBitCredentials;
 import acadia.lwcardano.internalization.bybit.objects.OrderObject;
 import acadia.lwcardano.internalization.bybit.objects.PositionObject;
+import acadia.lwcardano.internalization.objects.ConfigurationFile;
 import com.bybit.api.client.domain.trade.Side;
-import me.hysong.files.ConfigurationFile;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -39,6 +39,7 @@ public class ActionHooks {
         HashMap<String, PositionObject> positions = Orders.getCurrentPosition(cred, category, symbol);
         PositionObject currentPosition = positions.get(symbol);
         OrderObject o = currentPosition.constructOrderObject(cred, category);
+        Logger.log("DEBUG", "포지션 정보: " + positions);
         Logger.log("포지션 정리중...");
         o.setSide(currentPosition.getSide().equals(Side.SELL.toString()) ? Side.BUY.toString() : Side.SELL.toString()); // Reverse side
         o.setPrice(new BigDecimal(-1)); // Throw at market

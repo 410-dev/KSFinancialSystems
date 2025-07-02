@@ -7,7 +7,6 @@ import com.bybit.api.client.domain.market.MarketInterval;
 import com.bybit.api.client.domain.market.request.MarketDataRequest;
 import com.bybit.api.client.domain.position.request.PositionDataRequest;
 import com.bybit.api.client.restApi.BybitApiMarketRestClient;
-import me.hysong.files.ConfigurationFile;
 
 import java.util.LinkedHashMap;
 

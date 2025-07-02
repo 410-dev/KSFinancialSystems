@@ -1,9 +1,9 @@
 package acadia.lwcardano.internalization.bybit.objects;
 
+import acadia.lwcardano.internalization.objects.ConfigurationFile;
 import com.bybit.api.client.domain.trade.Side;
 import lombok.Getter;
 import lombok.Setter;
-import me.hysong.files.ConfigurationFile;
 
 import java.io.Serializable;
 import java.util.ArrayList;

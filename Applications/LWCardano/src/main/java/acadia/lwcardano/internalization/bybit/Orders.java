@@ -305,7 +305,11 @@ public class Orders {
                 orders.add(new OrderObject(credentials, trade));
             }
 
-            nextPageCursor = asObj(response.get("result")).get("nextPageCursor").toString();
+            try {
+                nextPageCursor = asObj(response.get("result")).get("nextPageCursor").toString();
+            } catch (NullPointerException ignored) {
+                nextPageCursor = "";
+            }
 
         }
 

@@ -22,14 +22,15 @@ public class AutoGridBuilder {
         }
 
         // Cast to integers
-        int autoStart, autoSteps, autoCount;
+        double autoStart, autoSteps;
+        int autoCount;
         try {
-            autoStart = Integer.parseInt(cfgFile.get("autogrid-start"));
-            autoSteps = Integer.parseInt(cfgFile.get("autogrid-steps"));
+            autoStart = Double.parseDouble(cfgFile.get("autogrid-start"));
+            autoSteps = Double.parseDouble(cfgFile.get("autogrid-steps"));
             autoCount = Integer.parseInt(cfgFile.get("autogrid-count"));
         } catch (Exception e) {
-            System.err.println("Error: Failed to cast autogrid values to integer");
-            HeadlessDialogs.showMessage("Error: Failed to cast autogrid values to integer");
+            System.err.println("Error: Failed to cast autogrid values to integer (" + e.getMessage() + ")");
+            HeadlessDialogs.showMessage("Error: Failed to cast autogrid values to integer (" + e.getMessage() + ")");
             System.exit(0);
             return;
         }

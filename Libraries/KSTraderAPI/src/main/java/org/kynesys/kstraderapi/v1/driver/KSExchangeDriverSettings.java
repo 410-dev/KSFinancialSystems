@@ -9,6 +9,7 @@ import me.hysong.files.File2;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public abstract class KSExchangeDriverSettings {
 
@@ -17,7 +18,7 @@ public abstract class KSExchangeDriverSettings {
     public abstract HashMap<String, Class<?>> getTypes();
     public abstract HashMap<String, HashMap<String, String>> getDescriptions();
     public abstract HashMap<String, HashMap<String, String>> getLabels();
-    public abstract HashMap<String, Object> getValues();
+    public abstract ConfigurationFile getValues();
     public abstract HashMap<String, Object> getDefaults();
     public abstract ArrayList<String> getOrderedKey();
     public abstract String getExchange();
@@ -29,8 +30,15 @@ public abstract class KSExchangeDriverSettings {
     }
 
     public void compose() {
-        // Read the JSON file
+        // Read the cfg file
         ConfigurationFile configurationFile = new ConfigurationFile(driverCfgPath);
+        configurationFile.load();
+
+        LinkedHashMap<String, String> data = configurationFile.copyConfigTable();
+        for (String key : data.keySet()) {
+
+        }
+
 //        StringBuilder jsonContent = new StringBuilder();
 //        try {
 //            BufferedReader reader = new BufferedReader(new FileReader(driverCfgPath));
@@ -141,11 +149,12 @@ public abstract class KSExchangeDriverSettings {
 
     public boolean save() {
         ConfigurationFile cfgf = new ConfigurationFile();
+        cfgf.setUseAutoSaveAfterSet(false);
         cfgf.set("version", 1);
         cfgf.set("exchange", getExchange());
         cfgf.set("endpoint", getEndpoint());
-        for (String key : getValues().keySet()) {
-            cfgf.set(key, getValues().get(key));
+        for (String key : getValues().copyConfigTable().keySet()) {
+            cfgf.set(key, getValues().get(key, Object.class, null));
         }
 //        try {
 //            // Create directory if not exist
@@ -162,10 +171,11 @@ public abstract class KSExchangeDriverSettings {
         // Write the config object to a file
         try {
             ConfigurationFile cfgFile = new File2(driverCfgPath).configFileMode().load();
+            cfgFile.parent().mkdirs();
             cfgFile.extend(cfgf).save();
         } catch (IOException e) {
-            System.err.println(e.getClass().getName() + ": " + e.getMessage());
             System.err.println("Failed to write the configuration file: " + driverCfgPath);
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
             return false;
         }
         return true;

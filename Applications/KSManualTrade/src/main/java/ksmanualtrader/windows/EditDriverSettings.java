@@ -25,13 +25,14 @@ public class EditDriverSettings extends JFrame {
         this.manifest = manifest;
 
         if (manifest == null) {
+            System.out.println("ERROR: Manifest passed null.");
             dispose();
             return;
         }
 
         // Get preferences
-        String prefLoc = new File2(KSManualTrader.storagePath + "/configs/drivers/" + manifest.getFileSystemIdentifier() + ".cfg").getAbsolutePath();
-        KSExchangeDriverSettings settings = manifest.getPreferenceObject(prefLoc);
+        System.out.println(cfg.getAbsolutePath());
+        KSExchangeDriverSettings settings = manifest.getPreferenceObject(cfg.getAbsolutePath());
 
         // Get language code
         String language = LanguageKit.getValue("CURRENT_LANGUAGE");
@@ -49,7 +50,7 @@ public class EditDriverSettings extends JFrame {
         }
 
         HashMap<String, Object> defaults = settings.getDefaults();
-        HashMap<String, Object> values = settings.getValues(); // These are the current values to display
+        ConfigurationFile values = settings.getValues(); // These are the current values to display
         ArrayList<String> keys = settings.getOrderedKey();
 
         // --- Compose UI ---
@@ -73,7 +74,7 @@ public class EditDriverSettings extends JFrame {
             // Placeholder for action: Open the raw JSON file in a text editor
             JOptionPane.showMessageDialog(this,
                     "Functionality to open in external editor needs to be implemented.\n" +
-                            "File location: " + prefLoc,
+                            "File location: " + cfg.getAbsolutePath(),
                     "Info", JOptionPane.INFORMATION_MESSAGE);
             // Example: You might use Desktop.getDesktop().edit(new File(prefLoc));
             // Make sure to handle potential exceptions if you implement this.
@@ -90,8 +91,8 @@ public class EditDriverSettings extends JFrame {
         for (String key : keys) {
             String labelText = labels.getOrDefault(key, key); // Use key as fallback for label
             String valueText = "";
-            if (values != null && values.containsKey(key)) {
-                Object val = values.get(key);
+            if (values != null && values.has(key)) {
+                Object val = values.get(key, Object.class, null);
                 valueText = (val != null) ? String.valueOf(val) : "";
             } else if (defaults != null && defaults.containsKey(key)) { // Fallback to default if no value
                 Object defVal = defaults.get(key);
@@ -201,11 +202,11 @@ public class EditDriverSettings extends JFrame {
 //                    return; // Stop processing and don't save
 //                }
 //                settings.getValues().put(key, object);
-                settings.getValues().put(key, valueStr);
+                settings.getValues().set(key, valueStr);
             }
 
             // Validate
-            for (String key : settings.getValues().keySet()) {
+            for (String key : settings.getValues().copyConfigTable().keySet()) {
                 String evaluationResult = settings.validateValue(key);
                 if (evaluationResult != null) {
                     JOptionPane.showMessageDialog(null, evaluationResult, "Error", JOptionPane.ERROR_MESSAGE);
@@ -245,5 +246,6 @@ public class EditDriverSettings extends JFrame {
         add(mainPanel);
         pack(); // Adjusts window size to fit components
         setLocationRelativeTo(null); // Center on screen
+        setVisible(true);
     }
 }

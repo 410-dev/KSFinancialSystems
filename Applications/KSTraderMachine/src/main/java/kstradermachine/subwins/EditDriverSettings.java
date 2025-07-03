@@ -1,6 +1,7 @@
 package kstradermachine.subwins;
 
 import kstradermachine.KSTraderMachine;
+import me.hysong.files.ConfigurationFile;
 import me.hysong.files.File2;
 import org.kynesys.foundation.v1.utils.LanguageKit;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
@@ -41,7 +42,7 @@ public class EditDriverSettings extends JFrame {
         }
 
         HashMap<String, Object> defaults = settings.getDefaults();
-        HashMap<String, Object> values = settings.getValues(); // These are the current values to display
+        ConfigurationFile values = settings.getValues(); // These are the current values to display
         ArrayList<String> keys = settings.getOrderedKey();
 
         // --- Compose UI ---
@@ -82,8 +83,8 @@ public class EditDriverSettings extends JFrame {
         for (String key : keys) {
             String labelText = labels.getOrDefault(key, key); // Use key as fallback for label
             String valueText = "";
-            if (values != null && values.containsKey(key)) {
-                Object val = values.get(key);
+            if (values != null && values.has(key)) {
+                Object val = values.get(key, Object.class, null);
                 valueText = (val != null) ? String.valueOf(val) : "";
             } else if (defaults != null && defaults.containsKey(key)) { // Fallback to default if no value
                 Object defVal = defaults.get(key);
@@ -192,11 +193,11 @@ public class EditDriverSettings extends JFrame {
                             "Error", JOptionPane.ERROR_MESSAGE);
                     return; // Stop processing and don't save
                 }
-                settings.getValues().put(key, object);
+                settings.getValues().set(key, object);
             }
 
             // Validate
-            for (String key : settings.getValues().keySet()) {
+            for (String key : settings.getValues().copyConfigTable().keySet()) {
                 String evaluationResult = settings.validateValue(key);
                 if (evaluationResult != null) {
                     JOptionPane.showMessageDialog(null, evaluationResult, "Error", JOptionPane.ERROR_MESSAGE);

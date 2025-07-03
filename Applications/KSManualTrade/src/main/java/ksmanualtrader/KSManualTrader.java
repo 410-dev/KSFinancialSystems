@@ -89,8 +89,8 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
             JOptionPane.showMessageDialog(null, "Unable to retrieve driver ID from selection.", "Internal Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
-        id = comp[comp.length - 1];
-        id = id.substring(0, id.length() - 1); // This is key of drivers instantiated
+        id = comp[1];
+        id = id.substring(0, id.indexOf(")")); // This is key of drivers instantiated
         return Drivers.driversInstantiated.get(id);
     }
 
@@ -119,7 +119,8 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
         String[] exchanges = new String[Drivers.driversInstantiated.size()];
         int index = 0;
         for (String driverId : Drivers.driversInstantiated.keySet()) {
-            String exchangeName = Drivers.driversInstantiated.get(driverId).getDriverExchangeName() + ": " + Drivers.driversInstantiated.get(driverId).getDriverExchange() + " (" + driverId + ")";
+            KSExchangeDriverManifest d = Drivers.driversInstantiated.get(driverId);
+            String exchangeName = d.getDriverExchangeName() + ": " + d.getDriverExchange() + " (" + driverId + ") (" + d.getFileSystemIdentifier() + ")";
             exchanges[index] = exchangeName;
             index += 1;
         }
@@ -149,7 +150,10 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
-                    new EditDriverSettings(cfg, getManifest()).setVisible(true);
+                    KSExchangeDriverManifest manifest = getManifest();
+                    String fsId = manifest.getFileSystemIdentifier();
+                    ConfigurationFile c = storage.child(cfgPath).child("drivers").child(fsId + ".cfg").configFileMode().load();
+                    new EditDriverSettings(c, manifest);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

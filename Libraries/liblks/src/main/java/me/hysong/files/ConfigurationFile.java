@@ -31,6 +31,11 @@ public class ConfigurationFile extends File2 {
         initParsers();
     }
 
+    public LinkedHashMap<String, String> copyConfigTable() {
+        return new LinkedHashMap<>(configFile);
+    }
+
+
     private void initParsers() {
         parsers.put(String.class,    Function.identity());
         parsers.put(Integer.class,   Integer::parseInt);

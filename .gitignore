@@ -41,3 +41,4 @@ bin/
 ### Storage ###
 Storage/*
 *.local
+*.vfs3

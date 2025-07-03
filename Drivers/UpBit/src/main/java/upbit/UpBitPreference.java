@@ -1,6 +1,7 @@
 package upbit;
 
 import lombok.Getter;
+import me.hysong.files.ConfigurationFile;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverSettings;
 
 import java.util.ArrayList;
@@ -12,10 +13,11 @@ public class UpBitPreference extends KSExchangeDriverSettings {
     private final String exchange;
     private final String endpoint;
 
-    private final HashMap<String, Object> values = new HashMap<>();
+    private final ConfigurationFile values;
 
     public UpBitPreference(String driverCfgPath) {
         super(driverCfgPath);
+        values = new ConfigurationFile(driverCfgPath).load();
         exchange = new UpBitDriverManifest().getDriverExchange();
         endpoint = new UpBitDriverManifest().getDriverAPIEndpoint();
         compose();
@@ -44,31 +46,29 @@ public class UpBitPreference extends KSExchangeDriverSettings {
     public String validateValue(String key) {
         switch (key) {
             case "auth.apiAK", "auth.apiSK": {
-                if (values.get(key) instanceof String) {
-                    return null;
-                } else {
-                    return "Expected String";
-                }
+                return null;
             }
             case "future.leverage": {
-                if (values.get(key) instanceof Integer) {
-                    if (((Integer) values.get(key)) <= 10 && ((Integer) values.get(key)) > 0) {
+                try {
+                    int value = values.get(key, Integer.class, -1);
+                    if (value <= 10 && value > 0) {
                         return null;
                     } else {
-                        return "Future Leverage expected value between 0 exclusive to 10 inclusive.";
+                        return "Future Leverage expected an integer value between 0 exclusive to 10 inclusive.";
                     }
-                } else {
+                } catch (Exception e) {
                     return "Future leverage expected integer.";
                 }
             }
             case "option.leverage": {
-                if (values.get(key) instanceof Integer) {
-                    if (((Integer) values.get(key)) <= 50 && ((Integer) values.get(key)) > 0) {
+                try {
+                    int value = values.get(key, Integer.class, -1);
+                    if (value <= 50 && value > 0) {
                         return null;
                     } else {
-                        return "Option Leverage expected value between 0 exclusive to 10 inclusive.";
+                        return "Option Leverage expected an integer value between 0 exclusive to 50 inclusive.";
                     }
-                } else {
+                } catch (Exception e) {
                     return "Option leverage expected integer.";
                 }
             }

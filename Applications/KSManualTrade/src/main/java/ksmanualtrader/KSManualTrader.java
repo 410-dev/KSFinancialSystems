@@ -3,7 +3,10 @@ package ksmanualtrader;
 
 import ksmanualtrader.objects.JournalingObject;
 import ksmanualtrader.windows.EditDriverSettings;
+import ksmanualtrader.windows.MakeOrders;
+import ksmanualtrader.windows.OrderList;
 import lombok.Getter;
+import me.hysong.files.ConfigurationFile;
 import me.hysong.files.File2;
 import org.kynesys.foundation.v1.interfaces.KSApplication;
 import org.kynesys.foundation.v1.interfaces.KSJournalingService;
@@ -14,6 +17,7 @@ import org.kynesys.graphite.v1.GPSplashWindow;
 import org.kynesys.graphite.v1.GraphiteProgramLauncher;
 import org.kynesys.graphite.v1.KSGraphicalApplication;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
+import org.kynesys.kstraderapi.v1.objects.KSGenericAuthorizationObject;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -51,23 +55,57 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
 
     // Orders Section Components
     private JPanel ordersPanel;
-    private JButton makeOrderButton;
-    private JButton currentOrdersButton1;
-    private JButton currentOrdersButton2; // As per the image, there are two buttons with similar text
+    private JButton makeGridOrderButton;
+    private JButton manualSellWindowButton;
 
     // History Section Components
     private JPanel historyPanel;
-    private JButton historyProfitButton;
-    private JButton historyButton;
+    private JButton profitHistoryButton;
 
     // Bottom Panel Components
     private JLabel versionLabel;
     private JLabel connectionLabel;
 
+    // Current selection
+    private ConfigurationFile cfg;
+    private File2 cfgFile;
+    private File2 storage;
+
     // Static data
-    public static final String appDataPath = "/KSManualTrade/"; // Append after storage path
-    public static final String logsPath = appDataPath + "logs";
-    public static final String cfgPath = appDataPath + "configs";
+    public static final String logsPath = "logs";
+    public static final String cfgPath = "configs";
+
+    private File2 root;
+
+    public KSExchangeDriverManifest getManifest() {
+        String id = null;
+        if (exchangeComboBox.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(null, "Unable to open setting: ID is not selected.", "ID not selected", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+        id = exchangeComboBox.getSelectedItem().toString();
+        String[] comp = id.split(" \\(");
+        if (comp.length < 2) {
+            JOptionPane.showMessageDialog(null, "Unable to retrieve driver ID from selection.", "Internal Error", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+        id = comp[comp.length - 1];
+        id = id.substring(0, id.length() - 1); // This is key of drivers instantiated
+        return Drivers.driversInstantiated.get(id);
+    }
+
+    private void updateConfig(String id) {
+        if (id == null) return;
+
+        try {
+            cfgFile = storage.child(cfgPath).child(id.split(": ")[1].split(" \\(")[0] + ".cfg");
+            cfgFile.parent().mkdirs();
+            cfgFile.writeIfNotExist();
+            cfg = cfgFile.configFileMode().load();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Initializes all the Swing components.
@@ -86,20 +124,21 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
             index += 1;
         }
         exchangeComboBox = new JComboBox<>(exchanges);
-
+        exchangeComboBox.addActionListener(e -> {
+            System.out.println("Exchange selected: " + exchangeComboBox.getSelectedItem());
+            updateConfig(exchangeComboBox.getSelectedItem() != null ? exchangeComboBox.getSelectedItem().toString() : null);
+        });
 
         // General Section
         generalSettingsButton = new JButton("Settings");
         logsButton = new JButton("Logs");
 
         // Orders Section
-        makeOrderButton = new JButton("Make Order");
-        currentOrdersButton1 = new JButton("Current Orders");
-        currentOrdersButton2 = new JButton("Current Orders");
+        makeGridOrderButton = new JButton("Make Grid Order");
+        manualSellWindowButton = new JButton("Manual Sell");
 
         // History Section
-        historyProfitButton = new JButton("Profit");
-        historyButton = new JButton("History");
+        profitHistoryButton = new JButton("Profit History");
 
         // Bottom Panel
         versionLabel = new JLabel("Version 1.0");
@@ -109,21 +148,46 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
         generalSettingsButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                String id = null;
-                if (exchangeComboBox.getSelectedItem() == null) {
-                    JOptionPane.showMessageDialog(null, "Unable to open setting: ID is not selected.", "ID not selected", JOptionPane.ERROR_MESSAGE);
-                    return;
+                try {
+                    new EditDriverSettings(cfg, getManifest()).setVisible(true);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
-                id = exchangeComboBox.getSelectedItem().toString();
-                String[] comp = id.split(" \\(");
-                if (comp.length < 2) {
-                    JOptionPane.showMessageDialog(null, "Unable to retrieve driver ID from selection.", "Internal Error", JOptionPane.ERROR_MESSAGE);
-                    return;
+            }
+        });
+        logsButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JOptionPane.showMessageDialog(null, "Getting things ready...");
+            }
+        });
+        makeGridOrderButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    new MakeOrders(cfg, getManifest()).setVisible(true);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
-                id = comp[comp.length - 1];
-                id = id.substring(0, id.length() - 1); // This is key of drivers instantiated
-
-                new EditDriverSettings(Drivers.driversInstantiated.get(id)).setVisible(true);
+            }
+        });
+        manualSellWindowButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    new OrderList(cfg, getManifest()).setVisible(true);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        profitHistoryButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JOptionPane.showMessageDialog(null, "Getting things ready...");
             }
         });
     }
@@ -152,16 +216,14 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
         // --- Orders Panel ---
         ordersPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         ordersPanel.setBorder(new TitledBorder("Orders"));
-        ordersPanel.add(makeOrderButton);
-        ordersPanel.add(currentOrdersButton1);
-        ordersPanel.add(currentOrdersButton2);
+        ordersPanel.add(makeGridOrderButton);
+        ordersPanel.add(manualSellWindowButton);
         mainContentPanel.add(ordersPanel);
 
         // --- History Panel ---
         historyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         historyPanel.setBorder(new TitledBorder("History"));
-        historyPanel.add(historyProfitButton);
-        historyPanel.add(historyButton);
+        historyPanel.add(profitHistoryButton);
         mainContentPanel.add(historyPanel);
 
         // Add the central container panel to the frame's center
@@ -187,7 +249,8 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
             // Setup storage path
             storagePath = StorageSetupTool.init("KSManualTrader", args);
 
-            File2 root = new File2(storagePath).parent().parent();
+            storage = new File2(storagePath);
+            root = storage.parent().parent();
             File2 sharedlib = root.child("Library");
 
             // Load libraries
@@ -231,9 +294,6 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
             // Load drivers
             loadDrivers();
 
-            // TODO Load configurations
-            // ldcfg
-
             // Prepare UI
             // --- Frame Setup ---
             setLayout(new BorderLayout(10, 10)); // Main layout with gaps
@@ -246,6 +306,9 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
 
             // --- Finalize Frame ---
             setMinimumSize(getSize()); // Prevent resizing smaller than the packed size
+
+            // Load configurations
+            updateConfig(exchangeComboBox.getSelectedItem() == null ? null : exchangeComboBox.getSelectedItem().toString());
 
         }));
         JLabel titleLabel = new JLabel("Kyne Systems Trader Machine");
@@ -268,6 +331,8 @@ public class KSManualTrader extends KSGraphicalApplication implements KSApplicat
 
         // Load drivers
         try {
+            System.out.println("Loading Drivers...");
+            Drivers.loadJarsIn(root.child("Drivers"));
             Drivers.loadJarsIn(new File2(storagePath + "/Drivers"));
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Failed to load drivers", "Error", JOptionPane.ERROR_MESSAGE);

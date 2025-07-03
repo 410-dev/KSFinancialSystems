@@ -2,6 +2,7 @@ package upbit;
 
 import com.google.gson.JsonObject;
 import lombok.Getter;
+import me.hysong.files.ConfigurationFile;
 import org.kynesys.foundation.v1.interfaces.KSJournalingService;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverSettings;
@@ -49,7 +50,7 @@ public class UpBitDriverManifest implements KSExchangeDriverManifest {
     }
 
     @Override
-    public KSGenericAuthorizationObject getAccount(String type, JsonObject preferenceFile) {
-        return new KSGenericAuthorizationObject(type, driverExchange, preferenceFile.get("auth.apiAK").getAsString(), preferenceFile.get("auth.apiSK").getAsString());
+    public KSGenericAuthorizationObject getAccount(String type, ConfigurationFile preferenceFile) {
+        return new KSGenericAuthorizationObject(type, driverExchange, preferenceFile.get("auth.apiAK", String.class, ""), preferenceFile.get("auth.apiSK", String.class, ""));
     }
 }

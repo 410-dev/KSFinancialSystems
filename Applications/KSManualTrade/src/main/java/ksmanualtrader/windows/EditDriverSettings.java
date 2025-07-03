@@ -3,10 +3,12 @@ package ksmanualtrader.windows;
 
 
 import ksmanualtrader.KSManualTrader;
+import me.hysong.files.ConfigurationFile;
 import me.hysong.files.File2;
 import org.kynesys.foundation.v1.utils.LanguageKit;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverSettings;
+import org.kynesys.kstraderapi.v1.objects.KSGenericAuthorizationObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,11 +21,16 @@ public class EditDriverSettings extends JFrame {
     private final KSExchangeDriverManifest manifest;
     private final HashMap<String, JTextField> inputFields = new HashMap<>(); // To store references to text fields
 
-    public EditDriverSettings(KSExchangeDriverManifest manifest) {
+    public EditDriverSettings(ConfigurationFile cfg, KSExchangeDriverManifest manifest) {
         this.manifest = manifest;
 
+        if (manifest == null) {
+            dispose();
+            return;
+        }
+
         // Get preferences
-        String prefLoc = new File2(KSManualTrader.storagePath + "/configs/drivers/" + manifest.getFileSystemIdentifier() + ".json").getAbsolutePath();
+        String prefLoc = new File2(KSManualTrader.storagePath + "/configs/drivers/" + manifest.getFileSystemIdentifier() + ".cfg").getAbsolutePath();
         KSExchangeDriverSettings settings = manifest.getPreferenceObject(prefLoc);
 
         // Get language code
@@ -147,53 +154,54 @@ public class EditDriverSettings extends JFrame {
                 String key = entry.getKey();
                 String valueStr = entry.getValue().getText();
 
-                // Cast value based on the designated type.
-                // If cast fails, don't save.
-                Class<?> type = settings.getTypes().get(key);
-                Object object;
-                try {
-                    if (type.equals(String.class)) {
-                        object = valueStr;
-                    } else if (type.equals(Integer.class)) {
-                        object = Integer.parseInt(valueStr);
-                    } else if (type.equals(Double.class)) {
-                        object = Double.parseDouble(valueStr);
-                    } else if (type.equals(Long.class)) {
-                        object = Long.parseLong(valueStr);
-                    } else if (type.equals(Float.class)) {
-                        object = Float.parseFloat(valueStr);
-                    } else if (type.equals(Short.class)) {
-                        object = Short.parseShort(valueStr);
-                    } else if (type.equals(Byte.class)) {
-                        object = Byte.parseByte(valueStr);
-                    } else if (type.equals(Boolean.class)) {
-                        object = Boolean.parseBoolean(valueStr);
-                    } else if (type.equals(Number.class)) {
-                        // Attempt to parse as Double first, then Long if it fails
-                        try {
-                            object = Double.parseDouble(valueStr);
-                        } catch (NumberFormatException ex) {
-                            object = Long.parseLong(valueStr);
-                        }
-                    } else {
-                        // Handle other types or throw an error
-                        JOptionPane.showMessageDialog(EditDriverSettings.this,
-                                "Unsupported setting type for key: " + key,
-                                "Error", JOptionPane.ERROR_MESSAGE);
-                        return; // Stop processing and don't save
-                    }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(EditDriverSettings.this,
-                            "Invalid number format for key: " + key + "\nExpected type: " + type.getSimpleName(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    return; // Stop processing and don't save
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(EditDriverSettings.this,
-                            "Error parsing value for key: " + key + "\nError: " + ex.getMessage(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    return; // Stop processing and don't save
-                }
-                settings.getValues().put(key, object);
+//                // Cast value based on the designated type.
+//                // If cast fails, don't save.
+//                Class<?> type = settings.getTypes().get(key);
+//                Object object;
+//                try {
+//                    if (type.equals(String.class)) {
+//                        object = valueStr;
+//                    } else if (type.equals(Integer.class)) {
+//                        object = Integer.parseInt(valueStr);
+//                    } else if (type.equals(Double.class)) {
+//                        object = Double.parseDouble(valueStr);
+//                    } else if (type.equals(Long.class)) {
+//                        object = Long.parseLong(valueStr);
+//                    } else if (type.equals(Float.class)) {
+//                        object = Float.parseFloat(valueStr);
+//                    } else if (type.equals(Short.class)) {
+//                        object = Short.parseShort(valueStr);
+//                    } else if (type.equals(Byte.class)) {
+//                        object = Byte.parseByte(valueStr);
+//                    } else if (type.equals(Boolean.class)) {
+//                        object = Boolean.parseBoolean(valueStr);
+//                    } else if (type.equals(Number.class)) {
+//                        // Attempt to parse as Double first, then Long if it fails
+//                        try {
+//                            object = Double.parseDouble(valueStr);
+//                        } catch (NumberFormatException ex) {
+//                            object = Long.parseLong(valueStr);
+//                        }
+//                    } else {
+//                        // Handle other types or throw an error
+//                        JOptionPane.showMessageDialog(EditDriverSettings.this,
+//                                "Unsupported setting type for key: " + key,
+//                                "Error", JOptionPane.ERROR_MESSAGE);
+//                        return; // Stop processing and don't save
+//                    }
+//                } catch (NumberFormatException ex) {
+//                    JOptionPane.showMessageDialog(EditDriverSettings.this,
+//                            "Invalid number format for key: " + key + "\nExpected type: " + type.getSimpleName(),
+//                            "Error", JOptionPane.ERROR_MESSAGE);
+//                    return; // Stop processing and don't save
+//                } catch (Exception ex) {
+//                    JOptionPane.showMessageDialog(EditDriverSettings.this,
+//                            "Error parsing value for key: " + key + "\nError: " + ex.getMessage(),
+//                            "Error", JOptionPane.ERROR_MESSAGE);
+//                    return; // Stop processing and don't save
+//                }
+//                settings.getValues().put(key, object);
+                settings.getValues().put(key, valueStr);
             }
 
             // Validate

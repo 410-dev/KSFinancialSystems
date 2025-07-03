@@ -1,10 +1,12 @@
 package ksmanualtrader.windows;
 
 import lombok.Getter;
+import me.hysong.files.ConfigurationFile;
 import org.kynesys.foundation.v1.utils.LanguageKit;
 import org.kynesys.graphite.v1.GraphiteProgramLauncher;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriverManifest;
 import org.kynesys.kstraderapi.v1.driver.KSExchangeDriver;
+import org.kynesys.kstraderapi.v1.objects.KSGenericAuthorizationObject;
 import org.kynesys.kstraderapi.v1.objects.Order;
 
 import javax.swing.*;
@@ -29,12 +31,24 @@ public class OrderList extends JFrame {
     private ArrayList<OrderRow> rows = new ArrayList<>();
     private JPanel tablePanel;
 
-    public OrderList(ArrayList<Order> initialList, KSExchangeDriverManifest driver) {
-        this.orders.clear();
-        this.orders.addAll(initialList); // Safe copy
-        this.driver = driver.getDriver(GraphiteProgramLauncher.getJournalingObject());
+    public OrderList(ConfigurationFile cfg, KSExchangeDriverManifest manifest) throws Exception {
+        if (manifest == null) {
+            dispose();
+            return;
+        }
 
-        maxPage = initialList.size() / numOfOrdersPerPage + (initialList.size() % numOfOrdersPerPage == 0 ? 0 : 1);
+        this.driver = manifest.getDriver(GraphiteProgramLauncher.getJournalingObject());
+
+        KSGenericAuthorizationObject authObj = manifest.getAccount("spot", cfg);
+        ArrayList<Order> orders = driver.getOpenOrders(authObj, cfg.get("symbol", String.class, "BTCUSDT"), cfg.get("limit", int.class, 100));
+
+        this.orders.clear();
+        this.orders.addAll(orders); // Safe copy
+
+        // Load open orders
+//        driver.getOpenOrders();
+
+        maxPage = orders.size() / numOfOrdersPerPage + (orders.size() % numOfOrdersPerPage == 0 ? 0 : 1);
         currentPage = 0;
 
         serverRefreshLatency = new JLabel();

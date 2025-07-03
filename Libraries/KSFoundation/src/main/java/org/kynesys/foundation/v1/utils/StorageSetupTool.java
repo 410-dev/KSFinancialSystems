@@ -37,9 +37,7 @@ public class StorageSetupTool {
         boolean isInitialized = pathCheckResult.toLowerCase().startsWith("t");
         String storagePath = pathCheckResult.substring(1);
 
-        boolean forceReset = Arrays.stream(args)
-                .parallel()
-                .anyMatch(element -> element.equals("--reset-storage"));
+        boolean forceReset = Arrays.asList(args).contains("--reset-storage");
 
         // If storage isn't initialized or a reset is forced, set it up.
         if (!isInitialized || forceReset) {
@@ -52,8 +50,7 @@ public class StorageSetupTool {
             // Create the content for the config file, marking it as initialized.
             // Format: key=type:value
             // '1' is used for true, '0' for false.
-            String initializedContent = "version=int32:1\n" +
-                    "initialized=int1:1";
+            String initializedContent = "version=int32:1\ninitialized=int1:1";
             try {
                 new File2(storagePath + File.separator + STORAGE_CONFIG_FILENAME).writeString(initializedContent);
             } catch (Exception e) {
@@ -77,7 +74,7 @@ public class StorageSetupTool {
                 .filter(e -> e.startsWith("--root="))
                 .map(s -> s.substring("--root=".length()))
                 .findFirst()
-                .orElse("Storage");
+                .orElse(System.getProperty("user.home") + File.separator + "KyneSys");
         rootPath += File.separator + "Containers" + File.separator + scope;
 
         // Create the storage directory if it doesn't already exist.

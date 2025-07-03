@@ -11,8 +11,8 @@ public class Tester {
     public static void main(String[] args) throws Exception {
         File2 fc = new File2("env.cfg.local");
         ConfigurationFile cfg = fc.configFileMode().load();
-        String ak = cfg.get("UPBIT_AK", "");
-        String sk = cfg.get("UPBIT_SK", "");
+        String ak = cfg.get("UPBIT_AK", String.class, "");
+        String sk = cfg.get("UPBIT_SK", String.class, "");
         KSGenericAuthorizationObject ac = new KSGenericAuthorizationObject("spot", "upbit", ak, sk);
 
         System.out.println("AK: " + ak);

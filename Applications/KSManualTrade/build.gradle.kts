@@ -24,6 +24,11 @@ dependencies {
     implementation(project(":Libraries:Graphite"))
     implementation(project(":Libraries:liblks"))
 
+    implementation("org.eclipse.jetty:jetty-server:11.0.15")
+    implementation("org.eclipse.jetty:jetty-servlet:11.0.15")
+    compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0") // 6.x is Servlet 6.0; adjust if needed
+    implementation("org.slf4j:slf4j-simple:2.0.7")
+
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
     testCompileOnly("org.projectlombok:lombok:1.18.36")

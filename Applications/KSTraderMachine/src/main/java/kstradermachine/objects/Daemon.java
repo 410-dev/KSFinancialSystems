@@ -43,7 +43,7 @@ public class Daemon {
                     break;
                 }
 
-                String preferenceFilePath = KSTraderMachine.storagePath + "/configs/drivers/" + driverManifest.getFileSystemIdentifier() + ".json";
+                String preferenceFilePath = KSTraderMachine.storagePath + "/configs/drivers/" + driverManifest.getFileSystemIdentifier() + ".cfg";
                 String preference = new File2(preferenceFilePath).readStringNullable();
                 if (preference == null) {
                     SystemLogs.log("ERROR", "Driver configuration not found for slot " + cfg.getSlot() + " at " + preferenceFilePath + ". Please configure driver first. Terminating worker.");
@@ -51,11 +51,7 @@ public class Daemon {
                     // SwingUtilities.invokeLater(() -> Application.currentInstance.getDaemonStatusPanels().get(slot).setStatus(DaemonPanel.DaemonStatusOutlook.ERROR));
                     break;
                 }
-                JsonObject prefObject = JsonParser.parseString(preference).getAsJsonObject();
-                if (prefObject.has("settings")) {
-                    prefObject = prefObject.get("settings").getAsJsonObject();
-                }
-                KSGenericAuthorizationObject KSGenericAuthorizationObject = driverManifest.getAccount(cfg.getTraderMode(), prefObject);
+                KSGenericAuthorizationObject KSGenericAuthorizationObject = driverManifest.getAccount(cfg.getTraderMode(), new File2(preferenceFilePath).configFileMode().load());
 
                 if (strategyManifest.isForREST()) {
                     KSStrategyForRepresentationalStateTransferInterface restStrat = strategyManifest.getRESTStrategy(journalingAgent);

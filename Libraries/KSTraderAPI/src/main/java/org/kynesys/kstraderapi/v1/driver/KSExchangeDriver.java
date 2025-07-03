@@ -6,6 +6,7 @@ import org.kynesys.kstraderapi.v1.objects.Order;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public interface KSExchangeDriver {
 
@@ -26,7 +27,7 @@ public interface KSExchangeDriver {
 
     /**
      * Get open orders
-     * @param KSGenericAuthorizationObject Account that contains credentials
+     * @param auth Account that contains credentials
      * @param params Parameters for the orders.
      *               Keys may require:
      *               - symbol: The symbol to get orders for.
@@ -34,7 +35,14 @@ public interface KSExchangeDriver {
      * @return An Array of Order objects representing the orders.
      * @throws Exception if an error occurs while getting orders
      */
-    ArrayList<Order> getOpenOrders(KSGenericAuthorizationObject KSGenericAuthorizationObject, HashMap<String, Object> params) throws Exception;
+    ArrayList<Order> getOpenOrders(KSGenericAuthorizationObject auth, HashMap<String, Object> params) throws Exception;
+
+    default ArrayList<Order> getOpenOrders(KSGenericAuthorizationObject auth, String symbol, int limit) throws Exception {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("symbol", symbol);
+        params.put("limit", limit);
+        return getOpenOrders(auth, params);
+    }
 
     /**
      * Get closed orders

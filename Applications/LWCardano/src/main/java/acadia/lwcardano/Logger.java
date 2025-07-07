@@ -67,6 +67,9 @@ public class Logger {
 
         File2 logFile = new File2("logs/" + logTimestamp + ".log");
         try {
+            if (status.equals("DEEP-DEBUG") && !LWCardanoApplication.verbose) {
+                return;
+            }
             logFile.appendString(true, output + "\n");
         } catch (Exception e) {
             e.printStackTrace();

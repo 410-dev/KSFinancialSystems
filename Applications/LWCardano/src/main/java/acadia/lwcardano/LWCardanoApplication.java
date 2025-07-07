@@ -282,7 +282,6 @@ public class LWCardanoApplication {
                 }
             } else {
                 // 기존의 리셋 트리거 정보가 존재하지 않으므로 리셋 트리거를 과거의 마지막 거래로 임의 설정
-                // TODO 이거 두번째 전거 확인해야 하는거 아니냐
                 Logger.log("리셋 트리거 미확인... 과거 마지막 거래로 임의 설정...");
                 resetTriggerOrder = filledOrders.getLast();
             }
@@ -378,6 +377,9 @@ public class LWCardanoApplication {
         resetTriggerOrder = null;
         Logger.log("예약된 오더 전량 취소중...");
         Orders.cancelAllOrders(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"));
+
+        // 포지션 전부 닫기
+        Orders.ensureCloseAllInMarket(credentials, ?, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"));
 
         // 설정에서 레버리지 가져오기 및 원격에 설정
         int leverage = Integer.parseInt(cfg.get("leverage", "1"));

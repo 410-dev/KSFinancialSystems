@@ -27,6 +27,10 @@ public class Orders {
         return placeOrder(credentials, price, side, market, symbol, amountBTC, orderSID);
     }
 
+    public static boolean ensureCloseAllInMarket(ByBitCredentials credentials, Side side, String category, String symbol) {
+
+    }
+
     public static boolean placeOrder(ByBitCredentials credentials, double price, Side side, String category, String symbol, double amountBTC, String orderSID) {
         BybitApiTradeRestClient client = ClientFactory.getAuthorizedTradeClient(credentials).newTradeRestClient();
 

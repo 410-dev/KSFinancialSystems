@@ -41,9 +41,7 @@ public class ActionHooks {
         OrderObject o = currentPosition.constructOrderObject(cred, category);
         Logger.log("DEBUG", "포지션 정보: " + positions);
         Logger.log("포지션 정리중...");
-        Orders.ensureCloseAllInMarket(cred, currentPosition.getSide().equals(Side.SELL.toString()) ? Side.BUY : Side.SELL, category, symbol);
-        o.setSide(currentPosition.getSide().equals(Side.SELL.toString()) ? Side.BUY.toString() : Side.SELL.toString()); // Reverse side
-        o.setPrice(new BigDecimal(-1)); // Throw at market
+        Orders.ensureCloseAllInMarket(cred, category, symbol);
         return o.placeOrder();
     }
 

@@ -34,7 +34,7 @@ public class LWCardanoApplication {
 
     public static boolean debugMode = false;
     public static boolean verbose = false;
-    public static String build = "2 5 J 0 2 B 6"; // 앞 2글자: 연도, 다음 1글자: 월의 첫 글자, 다음 2글자: 날짜, 다음 1글자: 월이 겹치면 알파벳 하나 증가 (April, August 등), 다음 1글자: 리비젼 16진수 (1~F)
+    public static String build = "2 5 J 0 9 B 1"; // 앞 2글자: 연도, 다음 1글자: 월의 첫 글자, 다음 2글자: 날짜, 다음 1글자: 월이 겹치면 알파벳 하나 증가 (April, August 등), 다음 1글자: 리비젼 16진수 (1~F)
 
     public static void main(String[] args) {
 
@@ -379,7 +379,7 @@ public class LWCardanoApplication {
         Orders.cancelAllOrders(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"));
 
         // 포지션 전부 닫기
-        Orders.ensureCloseAllInMarket(credentials, ?, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"));
+        Orders.ensureCloseAllInMarket(credentials, cfg.get("market", "FUTURE"), cfg.get("symbol", "BTCUSDT"));
 
         // 설정에서 레버리지 가져오기 및 원격에 설정
         int leverage = Integer.parseInt(cfg.get("leverage", "1"));

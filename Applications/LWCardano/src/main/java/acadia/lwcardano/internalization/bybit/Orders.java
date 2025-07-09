@@ -4,6 +4,7 @@ import acadia.lwcardano.Logger;
 import acadia.lwcardano.internalization.bybit.objects.ByBitCredentials;
 import acadia.lwcardano.internalization.bybit.objects.OrderObject;
 import acadia.lwcardano.internalization.bybit.objects.PositionObject;
+import acadia.lwcardano.tools.HeadlessDialogs;
 import com.bybit.api.client.domain.CategoryType;
 import com.bybit.api.client.domain.TradeOrderType;
 import com.bybit.api.client.domain.position.request.PositionDataRequest;
@@ -13,6 +14,7 @@ import com.bybit.api.client.domain.trade.request.TradeOrderRequest;
 import com.bybit.api.client.restApi.BybitApiPositionRestClient;
 import com.bybit.api.client.restApi.BybitApiTradeRestClient;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static acadia.lwcardano.internalization.bybit.APIResponseConverter.asListOfObj;
@@ -27,8 +29,30 @@ public class Orders {
         return placeOrder(credentials, price, side, market, symbol, amountBTC, orderSID);
     }
 
-    public static boolean ensureCloseAllInMarket(ByBitCredentials credentials, Side side, String category, String symbol) {
+    public static boolean ensureCloseAllInMarket(ByBitCredentials credentials, String category, String symbol) {
+        while (true) {
+            try {
+                Logger.log("포지션 받아오는중...");
+                HashMap<String, PositionObject> positions = Orders.getCurrentPosition(credentials, category, symbol);
+                PositionObject currentPosition = positions.get(symbol);
+                if (currentPosition == null) {
+                    Logger.log("돌아온 포지션 정보가 비어 있습니다. 모든 포지션이 닫혔습니다.");
+                    break;
+                }
+                OrderObject o = currentPosition.constructOrderObject(credentials, category);
+                Logger.log("DEBUG", "포지션 정보: " + positions);
+                Logger.log("포지션 정리중...");
+                o.setSide(currentPosition.getSide().equals(Side.SELL.toString()) ? Side.BUY.toString() : Side.SELL.toString()); // Reverse side
+                o.setPrice(new BigDecimal(-1)); // Throw at market
 
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                HeadlessDialogs.showMessage("ERROR: 포지션 정리 실패! 오류: " + e.getMessage());
+                e.printStackTrace();
+                break;
+            }
+        }
+        return true;
     }
 
     public static boolean placeOrder(ByBitCredentials credentials, double price, Side side, String category, String symbol, double amountBTC, String orderSID) {

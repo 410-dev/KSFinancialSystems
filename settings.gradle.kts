@@ -22,3 +22,4 @@ findProject("Libraries:KSScripting")?.name = "KSScripting"
 include("Drivers:UpBit")
 include("Services:KSScriptingInterpreter")
 include("Applications:LWCardano")
+include("Applications:KSCryptoHedger")

@@ -41,7 +41,7 @@ tasks.withType<ShadowJar> {
         attributes(
             "Implementation-Title" to project.name,
             "Implementation-Version" to project.version,
-            "Main-Class" to "kstradermachine.KSTraderMachine" // Crucial for executable JAR
+            "Main-Class" to "org.kynesys.services.notification.NotificationServer" // Crucial for executable JAR
         )
     }
 
